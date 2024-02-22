@@ -840,12 +840,9 @@ class FindReplace(object):
 
         def sort_presets():
             """Alphabetically sort presets by name attribute."""
-            print(self.settings_xml_presets)
-            print(self.settings_xml_presets[:])
             self.settings_xml_presets[:] = sorted(  # document this BETTER
                 self.settings_xml_presets,
                 key=lambda preset: preset.find('name').text)
-            print(self.settings_xml_presets)
 
         def save_button():
             """Triggered when the Save button at the bottom is pressed."""
