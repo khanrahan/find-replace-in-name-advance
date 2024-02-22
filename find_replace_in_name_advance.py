@@ -987,9 +987,7 @@ class FindReplace(object):
 
         def update_find():
             """Everything to update when find is changed."""
-            # the below .encode is necessary because otherwise it will return unicode
-            # and PyClip.name.set_value() does not take unicode
-            self.find = self.line_edit_find.text().encode('ascii', 'ignore')
+            self.find = self.line_edit_find.text()
 
             self.find_convert_wildcards_to_regex()
             self.get_names_new()
@@ -1007,7 +1005,7 @@ class FindReplace(object):
             """Everything to update when replace is changed."""
             # the below .encode is necessary because otherwise it will return unicode
             # and PyClip.name.set_value() does not take unicode
-            self.replace = self.line_edit_replace.text().encode('ascii', 'ignore')
+            self.replace = self.line_edit_replace.text()
 
             self.replace_sanitize()
             self.replace_resolve_tokens()
