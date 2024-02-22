@@ -1,8 +1,14 @@
-"""Find & Replace in Name Advance
+"""
+Script Name: Find & Replace in Name Advance
+Written By: Kieran Hanrahan
 
-URL:
+Script Version: 1.0.0
+Flame Version: 2021.1
 
-    http://github.com/khanrahan/find-replace-in-name-advance
+URL: http://github.com/khanrahan/find-replace-in-name-advance
+
+Creation Date: 02.21.24
+Update Date: 02.21.24
 
 Description:
 
