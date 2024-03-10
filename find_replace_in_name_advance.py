@@ -43,7 +43,7 @@ from PySide2 import QtCore, QtGui, QtWidgets
 TITLE = 'Find and Replace in Name Advance'
 VERSION_INFO = (2, 1, 0)
 VERSION = '.'.join([str(num) for num in VERSION_INFO])
-TITLE_VERSION = '{} v{}'.format(TITLE, VERSION)
+TITLE_VERSION = f'{TITLE} v{VERSION}'
 
 MESSAGE_PREFIX = '[PYTHON]'
 FOLDER_NAME = 'Edit...'
@@ -568,7 +568,7 @@ class FindReplace(object):
         self.selection = selection
 
         self.message(TITLE_VERSION)
-        self.message('Script called from {}'.format(__file__))
+        self.message(f'Script called from {__file__}')
 
         # Load settings (includes the presets)
         self.settings_xml = os.path.join(os.path.dirname(__file__), XML)
@@ -696,7 +696,7 @@ class FindReplace(object):
             elif regex_piece == '$':
                 self.find_regex += '$'
             else:
-                self.find_regex += '{}'.format(re.escape(regex_piece))
+                self.find_regex += f'{re.escape(regex_piece)}'
 
     def load_replace(self):
         """Load the first preset's replace pattern or leave blank."""
@@ -767,12 +767,11 @@ class FindReplace(object):
         """
         for num, clip in enumerate(self.selection):
             if self.names[num] == self.names_new[num]:
-                self.message('Skipping {}. No change to name.'.format(self.names[num]))
+                self.message(f'Skipping {self.names[num]}. No change to name.')
                 continue
 
             clip.name.set_value(self.names_new[num])
-            self.message('Renamed {} to {}'.format(self.names[num],
-                                                   self.names_new[num]))
+            self.message(f'Renamed {self.names[num]} to {self.names_new[num]}')
 
     def save_preset_window(self, preset_name):
         """Smaller window with save dialog.
@@ -810,12 +809,13 @@ class FindReplace(object):
 
             try:
                 self.settings_xml_tree.write(self.settings_xml)
-                self.message('{} preset saved to {}'.format(
-                    self.line_edit_preset_name.text(), self.settings_xml))
+                self.message(f'{self.line_edit_preset_name.text()} preset saved to ' +
+                             f'{self.settings_xml}')
+
             except OSError:  # removed IOError based on linter rule UP024
                 FlameMessageWindow(
                     'Error', 'error',
-                    'Check permissions on {}'.format(os.path.dirname(__file__)))
+                    f'Check permissions on {os.path.dirname(__file__)}')
 
         def overwrite_preset():
             """Replace pattern in presets XML tree then save to XML file."""
@@ -829,12 +829,13 @@ class FindReplace(object):
             try:
                 self.settings_xml_tree.write(self.settings_xml)
 
-                self.message('{} preset saved to {}'.format(
-                    self.line_edit_preset_name.text(), self.settings_xml))
+                self.message(f'{self.line_edit_preset_name.text()} preset saved to ' +
+                             f'{self.settings_xml}')
+
             except OSError:  # removed IOError based on linter rule UP024
                 FlameMessageWindow(
                     'Error', 'error',
-                    'Check permissions on {}'.format(os.path.dirname(__file__)))
+                    f'Check permissions on {os.path.dirname(__file__)}')
 
         def sort_presets():
             """Alphabetically sort presets by name attribute."""
@@ -966,8 +967,7 @@ class FindReplace(object):
                     if preset.find('name').text == preset_name:
                         self.settings_xml_presets.remove(preset)
                         self.message(
-                            '{} preset deleted from {}'.format(
-                                preset_name, self.settings_xml))
+                            f'{preset_name} preset deleted from {self.settings_xml}')
 
                 self.settings_xml_tree.write(self.settings_xml)
 
