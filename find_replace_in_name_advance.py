@@ -560,7 +560,7 @@ class FlameTokenPushButton(QtWidgets.QPushButton):
         token_action_menu()
 
 
-class FindReplace(object):
+class FindReplace:
     """Find and replace in name for selected objects in Flame."""
 
     def __init__(self, selection):
