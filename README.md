@@ -28,8 +28,14 @@ the ability to save and load presets.
 - `Match End`
 - `Match Start`
 
+## Compatibility
+
+|Script Version|Flame Version|
+|---|---|
+|v2.0.0|Flame 2022 up to 2024.2|
+|v1.0.0|Flame 2021 up to 2021.2|
+
 ## Installation
-**Tested & working on 2021.1**
 
 To make available to all users on the workstation, copy `find_replace_in_name_advance.py` to `/opt/Autodesk/shared/python`
 
