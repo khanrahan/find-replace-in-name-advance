@@ -2,13 +2,13 @@
 Script Name: Find & Replace in Name Advance
 Written By: Kieran Hanrahan
 
-Script Version: 2.1.0
+Script Version: 2.1.1
 Flame Version: 2022
 
 URL: http://github.com/khanrahan/find-replace-in-name-advance
 
 Creation Date: 02.21.24
-Update Date: 03.09.24
+Update Date: 4.22.24
 
 Description:
 
@@ -41,7 +41,7 @@ import flame
 from PySide2 import QtCore, QtGui, QtWidgets
 
 TITLE = 'Find and Replace in Name Advance'
-VERSION_INFO = (2, 1, 0)
+VERSION_INFO = (2, 1, 1)
 VERSION = '.'.join([str(num) for num in VERSION_INFO])
 TITLE_VERSION = f'{TITLE} v{VERSION}'
 
@@ -690,7 +690,7 @@ class FindReplace:
             if regex_piece == '^':
                 self.find_regex += '^'
             elif regex_piece == '*':
-                self.find_regex += '.*'
+                self.find_regex += '^$|.+'
             elif regex_piece == '?':
                 self.find_regex += '.'
             elif regex_piece == '$':
