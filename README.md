@@ -2,14 +2,29 @@
 
 Plugin for [Autodesk Flame software](http://www.autodesk.com/products/flame).
 
-Perform find & replace operation on the names of the selected Desktop or MediaHub items.
+Perform find & replace operation on the names of the selected items.
 
 Supports wildcards in the Search field, tokens in the Replace field, and
 the ability to save and load presets.
 
 ![screenshot](screenshot.png)
 
+## Supported Items
+### Desktop/Media Panel
+- Workspace
+- Library
+- Desktop
+- Folder
+- Reel Group
+- Reel
+- Sequence
+- Clip
+
+### Timeline
+- Segment
+ 
 ## Tokens
+### General
 - `am/pm`
 - `AM/PM`
 - `Day`
@@ -22,6 +37,12 @@ the ability to save and load presets.
 - `Year (YY)`
 - `Year (YYYY)`
 
+### Desktop/Media Panel
+- `Colour Space`
+
+### Timeline
+- `Shot Name`
+
 ## Wildcards
 - `Match Any`
 - `Match All`
@@ -32,8 +53,8 @@ the ability to save and load presets.
 
 |Script Version|Flame Version|
 |---|---|
-|v2.0.0|Flame 2022 up to 2024.2|
-|v1.0.0|Flame 2021 up to 2021.2|
+|v2.X.X|Flame 2022 up to 2024.2|
+|v1.X.X|Flame 2021 up to 2021.2|
 
 ## Installation
 
