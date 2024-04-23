@@ -2,24 +2,29 @@
 Script Name: Find & Replace in Name Advance
 Written By: Kieran Hanrahan
 
-Script Version: 2.1.1
+Script Version: 2.2.0
 Flame Version: 2022
 
 URL: http://github.com/khanrahan/find-replace-in-name-advance
 
 Creation Date: 02.21.24
-Update Date: 4.22.24
+Update Date: 04.23.24
 
 Description:
 
-    Perform find & replace on names of selected items.
+    Perform find & replace on names of selected items.  Functions on Workspaces,
+    Libraries, Desktops, Reel Groups, Reels, Folders, Sequences, Clips, and Timeline
+    Segments.
 
 Menus:
 
     Right-click selected items on the Desktop --> Edit... -->
         Find & Replace in Name Advance
 
-    Right-click selected items in the Media Panel --> Edit...  -->
+    Right-click selected items in the Media Panel --> Edit... -->
+        Find & Replace in Name Advance
+
+    Right-click selected items in the Timeline --> Edit... -->
         Find & Replace in Name Advance
 
 To Install:
@@ -41,7 +46,7 @@ import flame
 from PySide2 import QtCore, QtGui, QtWidgets
 
 TITLE = 'Find and Replace in Name Advance'
-VERSION_INFO = (2, 1, 1)
+VERSION_INFO = (2, 2, 0)
 VERSION = '.'.join([str(num) for num in VERSION_INFO])
 TITLE_VERSION = f'{TITLE} v{VERSION}'
 
@@ -561,11 +566,29 @@ class FlameTokenPushButton(QtWidgets.QPushButton):
 
 
 class FindReplace:
-    """Find and replace in name for selected objects in Flame."""
+    """Find and replace in name for selected objects in Flame.
 
-    def __init__(self, selection):
+    Desktop & Media Panel supported objects:
+        PyWorkspace
+        PyLibrary
+        PyDesktop
+        PyReelGroup
+        PyReel
+        PyFolder
+        PySequence
+        PyClip
+
+    Timeline supported objects:
+        PySegment
+    """
+
+    def __init__(self, selection, target=None):
         """Create FindReplace object with necessary starting values."""
         self.selection = selection
+        self.target = target
+
+        if target == 'Timeline':
+            self.filter_selection()
 
         self.message(TITLE_VERSION)
         self.message(f'Script called from {__file__}')
@@ -584,8 +607,12 @@ class FindReplace:
 
         # Tokens
         self.now = dt.datetime.now()
-        self.tokens = {}
-        self.generate_tokens()
+
+        self.tokens_generic = {}
+        self.generate_tokens_generic()
+
+        self.tokens_unique = []
+        self.generate_tokens_unique()
 
         # Find
         self.find = None
@@ -629,6 +656,16 @@ class FindReplace:
         thumbnail until you tap on the UI.
         """
         flame.execute_shortcut('Refresh Thumbnails')
+
+    def filter_selection(self):
+        """Remove PyTransition objects from the selection.
+
+        This is necessary because its convenient for the user to just do a shift + left
+        click range selection of segments on the timeline, but this will also include
+        the transitions between each segment which we do not want to rename.
+        """
+        self.selection = tuple([item for item in self.selection
+                                if not isinstance(item, flame.PyTransition)])
 
     def load_settings_tree(self):
         """Load preset file if preset and store XML tree & root."""
@@ -705,30 +742,86 @@ class FindReplace:
         else:
             self.replace = ''
 
-    def generate_tokens(self):
+    def generate_tokens_generic(self):
         """Populate the token list."""
-        self.tokens['am/pm'] = [
+        self.tokens_generic['am/pm'] = [
                 '<pp>', self.now.strftime('%p').lower()]
-        self.tokens['AM/PM'] = [
+        self.tokens_generic['AM/PM'] = [
                 '<PP>', self.now.strftime('%p').upper()]
-        self.tokens['Day'] = [
+        self.tokens_generic['Day'] = [
                 '<DD>', self.now.strftime('%d')]
-        self.tokens['Hour (12hr)'] = [
+        self.tokens_generic['Hour (12hr)'] = [
                 '<hh>', self.now.strftime('%I')]
-        self.tokens['Hour (24hr)'] = [
+        self.tokens_generic['Hour (24hr)'] = [
                 '<HH>', self.now.strftime('%H')]
-        self.tokens['Minute'] = [
+        self.tokens_generic['Minute'] = [
                 '<mm>', self.now.strftime('%M')]
-        self.tokens['Month'] = [
+        self.tokens_generic['Month'] = [
                 '<MM>', self.now.strftime('%m')]
-        self.tokens['Project'] = [
+        self.tokens_generic['Project'] = [
                 '<project>', flame.project.current_project.name]
-        self.tokens['User'] = [
+        self.tokens_generic['User'] = [
                 '<user>', flame.users.current_user.name]
-        self.tokens['Year (YYYY)'] = [
+        self.tokens_generic['Year (YYYY)'] = [
                 '<YYYY>', self.now.strftime('%Y')]
-        self.tokens['Year (YY)'] = [
+        self.tokens_generic['Year (YY)'] = [
                 '<YY>', self.now.strftime('%y')]
+
+    def get_token_colour_space(self, item):
+        """Get the item's color space.
+
+        Args:
+            item: Flame python object such PyClip, etc
+
+        Returns:
+            str or None
+        """
+        try:
+            token = item.get_colour_space()
+        except TypeError:
+            token = None
+        return token
+
+    def get_token_shot_name(self, item):
+        """Get the item's shot name.
+
+        Args:
+            item: Flame python object such PyClip, etc
+
+        Returns:
+            str or None
+        """
+        try:
+            token = item.shot_name.get_value()
+        except TypeError:
+            token = None
+        return token
+
+    def generate_tokens_unique(self):
+        """Determine which unique tokens to generate and generate them!
+
+        For example, Media Panel objects would have a different set of tokens available
+        compared to Timeline objects.
+        """
+        if self.target == 'Media Panel':
+            self.generate_tokens_media_panel()
+        if self.target == 'Timeline':
+            self.generate_tokens_timeline()
+
+    def generate_tokens_media_panel(self):
+        """Populate the token list."""
+        for item in self.selection:
+            obj_tokens = {}
+            obj_tokens['Colour Space'] = [
+                    '<colour space>', self.get_token_colour_space(item)]
+            self.tokens_unique.append(obj_tokens)
+
+    def generate_tokens_timeline(self):
+        """Populate the token list."""
+        for item in self.selection:
+            obj_tokens = {}
+            obj_tokens['Shot Name'] = ['<shot name>', self.get_token_shot_name(item)]
+            self.tokens_unique.append(obj_tokens)
 
     def replace_sanitize(self):
         """Replace invalid characters with an underscore.
@@ -740,13 +833,21 @@ class FindReplace:
 
     def replace_resolve_tokens(self):
         """Replace tokens with values."""
-        result = self.replace
+        results = []
 
-        for token, values in self.tokens.items():
-            del token
-            result = re.sub(values[0], values[1], result)
+        for index, item in enumerate(self.selection):
+            del item
+            result = self.replace
+            tokens_combined = {**self.tokens_generic, **self.tokens_unique[index]}
 
-        self.replace_resolved = result
+            for name, [token, value] in tokens_combined.items():
+                del name
+                if value is None:
+                    value = ''
+                result = re.sub(token, value, result)
+            results.append(result)
+
+        self.replace_resolved = results
 
     def get_names(self):
         """Store the original names of the selection in a list."""
@@ -754,8 +855,8 @@ class FindReplace:
 
     def get_names_new(self):
         """Generate the new names."""
-        self.names_new = [re.sub(self.find_regex, self.replace_resolved, item)
-                          for item in self.names]
+        self.names_new = [re.sub(self.find_regex, self.replace_resolved[index], item)
+                          for index, item in enumerate(self.names)]
 
     def update_names(self):
         """Change names of the names of the selected objects, skip if unnecesary.
@@ -811,7 +912,6 @@ class FindReplace:
                 self.settings_xml_tree.write(self.settings_xml)
                 self.message(f'{self.line_edit_preset_name.text()} preset saved to ' +
                              f'{self.settings_xml}')
-
             except OSError:  # removed IOError based on linter rule UP024
                 FlameMessageWindow(
                     'Error', 'error',
@@ -831,7 +931,6 @@ class FindReplace:
 
                 self.message(f'{self.line_edit_preset_name.text()} preset saved to ' +
                              f'{self.settings_xml}')
-
             except OSError:  # removed IOError based on linter rule UP024
                 FlameMessageWindow(
                     'Error', 'error',
@@ -839,7 +938,7 @@ class FindReplace:
 
         def sort_presets():
             """Alphabetically sort presets by name attribute."""
-            self.settings_xml_presets[:] = sorted(  # document this BETTER
+            self.settings_xml_presets[:] = sorted(
                 self.settings_xml_presets,
                 key=lambda preset: preset.find('name').text)
 
@@ -923,6 +1022,18 @@ class FindReplace:
 
     def main_window(self):
         """The primary window."""
+
+        def get_all_tokens():
+            """Assemble token names & <tokens>.
+
+            FlameTokenPushButton wants a dict that is only {name: <token>} so need to
+            simplify it with a dict comprehension.
+            """
+            tokens_generic = {
+                    key: values[0] for key, values in self.tokens_generic.items()}
+            tokens_unique = {
+                    key: values[0] for key, values in self.tokens_unique[0].items()}
+            return {**tokens_generic, **tokens_unique}
 
         def get_preset_names():
             """Return just the names of the presets."""
@@ -1069,12 +1180,7 @@ class FindReplace:
         self.btn_wildcards = FlameTokenPushButton(
                 'Add Wildcard', self.wildcards, self.line_edit_find, sort=True)
         self.btn_tokens = FlameTokenPushButton(
-                'Add Token',
-                # self.segment_tokens is a dict with a nested set for each key
-                # FlameTokenPushButton wants a dict that is only {token_name: token}
-                # so need to simplify it with a dict comprehension
-                {key: values[0] for key, values in self.tokens.items()},
-                self.line_edit_replace, sort=True)
+                'Add Token', get_all_tokens(), self.line_edit_replace, sort=True)
 
         self.btn_ok = FlameButton('Ok', ok_button, button_color='blue')
         self.btn_cancel = FlameButton('Cancel', cancel_button)
@@ -1124,7 +1230,17 @@ class FindReplace:
         return self.window
 
 
-def scope_selection(selection):
+def find_replace_media_panel(selection):
+    """Call class with Media Panel target."""
+    FindReplace(selection, target='Media Panel')
+
+
+def find_replace_timeline(selection):
+    """Call class with Timeline target."""
+    FindReplace(selection, target='Timeline')
+
+
+def scope_selection_media_panel(selection):
     """Return bool for whether selection contains only valid objects."""
     valid_objects = (
             flame.PyClip,
@@ -1139,11 +1255,38 @@ def scope_selection(selection):
     return all(isinstance(item, valid_objects) for item in selection)
 
 
+def scope_selection_timeline(selection):
+    """Return bool for whether selection contains only valid objects.
+
+    PyTransition is included because a shift + left click range selection of segments
+    will include the transitions in between.  Otherwise, the artist will not be
+    presented with the menu item.
+    """
+    valid_objects = (
+            flame.PyClip,
+            flame.PySegment,
+            flame.PyTransition)
+
+    return all(isinstance(item, valid_objects) for item in selection)
+
+
 def get_media_panel_custom_ui_actions():
-    """Python hook to add custom right click menu item."""
+    """Python hook to add item to the Desktop/Media Panel right click menu."""
     return [{'name': FOLDER_NAME,
              'actions': [{'name': TITLE,
-                          'isVisible': scope_selection,
-                          'execute': FindReplace,
-                          'minimumVersion': '2022'}]
+                          'isVisible': scope_selection_media_panel,
+                          'execute': find_replace_media_panel,
+                          'minimumVersion': '2022',
+                          'maximumVersion': '2024.9.9.9'}]
+           }]
+
+
+def get_timeline_custom_ui_actions():
+    """Python hook to add item to the Timeline right click menu."""
+    return [{'name': FOLDER_NAME,
+             'actions': [{'name': TITLE,
+                          'isVisible': scope_selection_timeline,
+                          'execute': find_replace_timeline,
+                          'minimumVersion': '2022',
+                          'maximumVersion': '2024.9.9.9'}]
            }]
