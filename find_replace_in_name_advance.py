@@ -2,13 +2,13 @@
 Script Name: Find & Replace in Name Advance
 Written By: Kieran Hanrahan
 
-Script Version: 2.2.0
+Script Version: 2.3.0
 Flame Version: 2022
 
 URL: http://github.com/khanrahan/find-replace-in-name-advance
 
 Creation Date: 02.21.24
-Update Date: 04.23.24
+Update Date: 08.07.24
 
 Description:
 
@@ -46,12 +46,13 @@ import flame
 from PySide2 import QtCore, QtGui, QtWidgets
 
 TITLE = 'Find and Replace in Name Advance'
-VERSION_INFO = (2, 2, 0)
+VERSION_INFO = (2, 3, 0)
 VERSION = '.'.join([str(num) for num in VERSION_INFO])
 TITLE_VERSION = f'{TITLE} v{VERSION}'
 
 MESSAGE_PREFIX = '[PYTHON]'
 FOLDER_NAME = 'Edit...'
+PRESET_FOLDER = '~/.config/find-and-replace-in-name-advance'
 XML = 'find_replace_in_name_advance.xml'
 
 
@@ -594,7 +595,8 @@ class FindReplace:
         self.message(f'Script called from {__file__}')
 
         # Load settings (includes the presets)
-        self.settings_xml = os.path.join(os.path.dirname(__file__), XML)
+        self.settings_xml_folder = os.path.expanduser(PRESET_FOLDER)
+        self.settings_xml = os.path.join(self.settings_xml_folder, XML)
 
         self.settings_xml_tree = None
         self.load_settings_tree()
@@ -892,6 +894,22 @@ class FindReplace:
 
             return duplicate
 
+        def check_preset_folder():
+            """Check that destination folder for preset XML file is available."""
+            result = False
+
+            if os.path.exists(self.settings_xml_folder):
+                result = True
+            else:
+                try:
+                    os.makedirs(self.settings_xml_folder)
+                    result = True
+                except OSError:
+                    FlameMessageWindow(
+                        'Error', 'error',
+                        f'Could not create {self.settings_xml_folder}')
+            return result
+
         def save_preset():
             """Save new preset to XML file."""
             new_preset = ETree.Element('preset')
@@ -908,14 +926,15 @@ class FindReplace:
             self.settings_xml_presets.append(new_preset)
             sort_presets()
 
-            try:
-                self.settings_xml_tree.write(self.settings_xml)
-                self.message(f'{self.line_edit_preset_name.text()} preset saved to ' +
-                             f'{self.settings_xml}')
-            except OSError:  # removed IOError based on linter rule UP024
-                FlameMessageWindow(
-                    'Error', 'error',
-                    f'Check permissions on {os.path.dirname(__file__)}')
+            if check_preset_folder():
+                try:
+                    self.settings_xml_tree.write(self.settings_xml)
+                    self.message(f'{self.line_edit_preset_name.text()} ' +
+                                 f'preset saved to  {self.settings_xml}')
+                except OSError:  # removed IOError based on linter rule UP024
+                    FlameMessageWindow(
+                        'Error', 'error',
+                        f'Check permissions on {self.settings_xml}')
 
         def overwrite_preset():
             """Replace pattern in presets XML tree then save to XML file."""
@@ -928,13 +947,12 @@ class FindReplace:
 
             try:
                 self.settings_xml_tree.write(self.settings_xml)
-
                 self.message(f'{self.line_edit_preset_name.text()} preset saved to ' +
                              f'{self.settings_xml}')
             except OSError:  # removed IOError based on linter rule UP024
                 FlameMessageWindow(
                     'Error', 'error',
-                    f'Check permissions on {os.path.dirname(__file__)}')
+                    f'Check permissions on {self.settings_xml}')
 
         def sort_presets():
             """Alphabetically sort presets by name attribute."""
