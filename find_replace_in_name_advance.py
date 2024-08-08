@@ -46,7 +46,7 @@ import flame
 from PySide2 import QtCore, QtGui, QtWidgets
 
 TITLE = 'Find and Replace in Name Advance'
-VERSION_INFO = (2, 3, 0)
+VERSION_INFO = (2, 3, 1, 'bugfix')
 VERSION = '.'.join([str(num) for num in VERSION_INFO])
 TITLE_VERSION = f'{TITLE} v{VERSION}'
 
@@ -941,7 +941,7 @@ class FindReplace:
             preset_name = self.line_edit_preset_name.text()
 
             for preset in self.settings_xml_presets.findall('preset'):
-                if preset.find('name') == preset_name:
+                if preset.find('name').text == preset_name:
                     preset.find('find').text = self.find
                     preset.find('replace').text = self.replace
 
