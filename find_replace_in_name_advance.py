@@ -596,7 +596,7 @@ class FindReplace:
 
         # Load settings (includes the presets)
         self.settings_xml_folder = os.path.expanduser(PRESET_FOLDER)
-        self.settings_xml = os.path.join(self.settings_xml_folder, XML)
+        self.settings_xml_file = os.path.join(self.settings_xml_folder, XML)
 
         self.settings_xml_tree = None
         self.load_settings_tree()
@@ -671,8 +671,8 @@ class FindReplace:
 
     def load_settings_tree(self):
         """Load preset file if preset and store XML tree & root."""
-        if os.path.isfile(self.settings_xml):
-            self.settings_xml_tree = ETree.parse(self.settings_xml)
+        if os.path.isfile(self.settings_xml_file):
+            self.settings_xml_tree = ETree.parse(self.settings_xml_file)
         else:
             settings = ETree.Element('settings')
 
@@ -928,13 +928,13 @@ class FindReplace:
 
             if check_preset_folder():
                 try:
-                    self.settings_xml_tree.write(self.settings_xml)
+                    self.settings_xml_tree.write(self.settings_xml_file)
                     self.message(f'{self.line_edit_preset_name.text()} ' +
-                                 f'preset saved to  {self.settings_xml}')
+                                 f'preset saved to  {self.settings_xml_file}')
                 except OSError:  # removed IOError based on linter rule UP024
                     FlameMessageWindow(
                         'Error', 'error',
-                        f'Check permissions on {self.settings_xml}')
+                        f'Check permissions on {self.settings_xml_file}')
 
         def overwrite_preset():
             """Replace pattern in presets XML tree then save to XML file."""
@@ -946,13 +946,13 @@ class FindReplace:
                     preset.find('replace').text = self.replace
 
             try:
-                self.settings_xml_tree.write(self.settings_xml)
+                self.settings_xml_tree.write(self.settings_xml_file)
                 self.message(f'{self.line_edit_preset_name.text()} preset saved to ' +
-                             f'{self.settings_xml}')
+                             f'{self.settings_xml_file}')
             except OSError:  # removed IOError based on linter rule UP024
                 FlameMessageWindow(
                     'Error', 'error',
-                    f'Check permissions on {self.settings_xml}')
+                    f'Check permissions on {self.settings_xml_file}')
 
         def sort_presets():
             """Alphabetically sort presets by name attribute."""
@@ -1095,10 +1095,10 @@ class FindReplace:
                 for preset in self.settings_xml_presets.findall('preset'):
                     if preset.find('name').text == preset_name:
                         self.settings_xml_presets.remove(preset)
-                        self.message(
-                            f'{preset_name} preset deleted from {self.settings_xml}')
+                        self.message(f'{preset_name} preset deleted from ' +
+                                     f'{self.settings_xml_file}')
 
-                self.settings_xml_tree.write(self.settings_xml)
+                self.settings_xml_tree.write(self.settings_xml_file)
 
             # Reload presets button
             self.load_settings_tree()
