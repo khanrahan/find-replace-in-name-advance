@@ -43,10 +43,10 @@ import xml.etree.ElementTree as ETree
 from functools import partial
 
 import flame
-from PySide2 import QtCore, QtGui, QtWidgets
+from PySide6 import QtCore, QtGui, QtWidgets
 
 TITLE = 'Find and Replace in Name Advance'
-VERSION_INFO = (2, 3, 1)
+VERSION_INFO = (2, 3, 1, 'dev')
 VERSION = '.'.join([str(num) for num in VERSION_INFO])
 TITLE_VERSION = f'{TITLE} v{VERSION}'
 
@@ -1167,7 +1167,7 @@ class FindReplace:
         self.window.setFocusPolicy(QtCore.Qt.StrongFocus)
 
         # Center Window
-        resolution = QtWidgets.QDesktopWidget().screenGeometry()
+        resolution = QtGui.QGuiApplication.primaryScreen().screenGeometry()
 
         self.window.move(
                 (resolution.width() / 2) - (self.window.frameSize().width() / 2),
@@ -1234,7 +1234,7 @@ class FindReplace:
         self.hbox2.addWidget(self.btn_ok)
 
         self.vbox = QtWidgets.QVBoxLayout()
-        self.vbox.setMargin(20)
+        self.vbox.setContentsMargins(20, 20, 20, 20)
         self.vbox.addLayout(self.gridbox)
         self.vbox.insertSpacing(1, 20)
         self.vbox.addLayout(self.hbox1)
@@ -1294,8 +1294,7 @@ def get_media_panel_custom_ui_actions():
              'actions': [{'name': TITLE,
                           'isVisible': scope_selection_media_panel,
                           'execute': find_replace_media_panel,
-                          'minimumVersion': '2022',
-                          'maximumVersion': '2024.9.9.9'}]
+                          'minimumVersion': '2025'}]
            }]
 
 
@@ -1305,6 +1304,5 @@ def get_timeline_custom_ui_actions():
              'actions': [{'name': TITLE,
                           'isVisible': scope_selection_timeline,
                           'execute': find_replace_timeline,
-                          'minimumVersion': '2022',
-                          'maximumVersion': '2024.9.9.9'}]
+                          'minimumVersion': '2025'}]
            }]
