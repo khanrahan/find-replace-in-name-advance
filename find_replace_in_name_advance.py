@@ -73,7 +73,7 @@ class FlameButton(QtWidgets.QPushButton):
 
     def __init__(self, button_name, connect, button_color='normal', button_width=150,
                  button_max_width=150):
-        super(FlameButton, self).__init__()
+        super().__init__()
 
         self.setText(button_name)
         self.setMinimumSize(QtCore.QSize(button_width, 28))
@@ -137,7 +137,7 @@ class FlameLabel(QtWidgets.QLabel):
     """
 
     def __init__(self, label_name, label_type='normal', label_width=150):
-        super(FlameLabel, self).__init__()
+        super().__init__()
 
         self.setText(label_name)
         self.setMinimumSize(label_width, 28)
@@ -188,7 +188,7 @@ class FlameLineEdit(QtWidgets.QLineEdit):
     """
 
     def __init__(self, text, width=150, max_width=2000):
-        super(FlameLineEdit, self).__init__()
+        super().__init__()
 
         self.setText(text)
         self.setMinimumHeight(28)
@@ -224,7 +224,7 @@ class FlameListWidget(QtWidgets.QListWidget):
     """
 
     def __init__(self, parent_window, *args, **kwargs):
-        super(FlameListWidget, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         self.setMinimumSize(500, 250)
         self.setParent(parent_window)
@@ -274,7 +274,7 @@ class FlameMessageWindow(QtWidgets.QDialog):
     """
 
     def __init__(self, message_title, message_type, message, parent=None):
-        super(FlameMessageWindow, self).__init__()
+        super().__init__()
 
         self.message_type = message_type
 
@@ -416,7 +416,7 @@ class FlamePushButtonMenu(QtWidgets.QPushButton):
 
     def __init__(self, button_name, menu_options, menu_width=240, max_menu_width=2000,
                  menu_action=None):
-        super(FlamePushButtonMenu, self).__init__()
+        super().__init__()
 
         self.button_name = button_name
         self.menu_options = menu_options
@@ -501,7 +501,7 @@ class FlameTokenPushButton(QtWidgets.QPushButton):
 
     def __init__(self, button_name, token_dict, token_dest, button_width=110,
                  button_max_width=300, sort=False):
-        super(FlameTokenPushButton, self).__init__()
+        super().__init__()
 
         self.setText(button_name)
         self.setMinimumHeight(28)
