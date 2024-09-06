@@ -1,5 +1,4 @@
 # Find and Replace in Name Advance
-
 Plugin for [Autodesk Flame software](http://www.autodesk.com/products/flame).
 
 Perform find & replace operation on the names of the selected items.
@@ -50,14 +49,13 @@ the ability to save and load presets.
 - `Match Start`
 
 ## Compatibility
-
 |Script Version|Flame Version|
 |---|---|
+|v3.X.X|Flame 2025 and up|
 |v2.X.X|Flame 2022 up to 2024.2|
 |v1.X.X|Flame 2021 up to 2021.2|
 
 ## Installation
-
 To make available to all users on the workstation, copy `find_replace_in_name_advance.py` to `/opt/Autodesk/shared/python`
 
 For specific users, copy to `/opt/Autodesk/user/<user name>/python`

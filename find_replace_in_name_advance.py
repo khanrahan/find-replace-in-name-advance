@@ -2,13 +2,13 @@
 Script Name: Find & Replace in Name Advance
 Written By: Kieran Hanrahan
 
-Script Version: 2.3.1
-Flame Version: 2022
+Script Version: 3.0.0
+Flame Version: 2025
 
 URL: http://github.com/khanrahan/find-replace-in-name-advance
 
 Creation Date: 02.21.24
-Update Date: 08.08.24
+Update Date: 09.05.24
 
 Description:
 
@@ -32,8 +32,11 @@ To Install:
     For all users, copy this file to:
     /opt/Autodesk/shared/python
 
-    For a specific user, copy this file to:
-    /opt/Autodesk/user/<user name>/python
+    For a specific user on Linux, copy this file to:
+    ~/flame/python
+
+    For a specific user on Mac, copy this file to:
+    /User/user_name/Library/Preferences/Autodesk/flame/python
 """
 
 import datetime as dt
@@ -46,7 +49,7 @@ import flame
 from PySide6 import QtCore, QtGui, QtWidgets
 
 TITLE = 'Find and Replace in Name Advance'
-VERSION_INFO = (2, 3, 1, 'dev')
+VERSION_INFO = (3, 0, 0)
 VERSION = '.'.join([str(num) for num in VERSION_INFO])
 TITLE_VERSION = f'{TITLE} v{VERSION}'
 
