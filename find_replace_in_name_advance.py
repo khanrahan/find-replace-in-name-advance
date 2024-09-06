@@ -522,9 +522,6 @@ class FlameTokenPushButton(QtWidgets.QPushButton):
                 color: rgb(106, 106, 106);
                 background-color: rgb(45, 55, 68);
                 border: none}
-            QPushButton::menu-indicator {
-                subcontrol-origin: padding;
-                subcontrol-position: center right}
             QToolTip {
                 color: rgb(170, 170, 170);
                 background-color: rgb(71, 71, 71);
