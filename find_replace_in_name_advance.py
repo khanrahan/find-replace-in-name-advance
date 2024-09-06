@@ -81,7 +81,7 @@ class FlameButton(QtWidgets.QPushButton):
         self.setFocusPolicy(QtCore.Qt.NoFocus)
         self.clicked.connect(connect)
         if button_color == 'normal':
-            self.setStyleSheet('''
+            self.setStyleSheet("""
                 QPushButton {
                     color: rgb(154, 154, 154);
                     background-color: rgb(58, 58, 58);
@@ -100,9 +100,9 @@ class FlameButton(QtWidgets.QPushButton):
                 QToolTip {
                     color: rgb(170, 170, 170);
                     background-color: rgb(71, 71, 71);
-                    border: 10px solid rgb(71, 71, 71)}''')
+                    border: 10px solid rgb(71, 71, 71)}""")
         elif button_color == 'blue':
-            self.setStyleSheet('''
+            self.setStyleSheet("""
                 QPushButton {
                     color: rgb(190, 190, 190);
                     background-color: rgb(0, 110, 175);
@@ -120,7 +120,7 @@ class FlameButton(QtWidgets.QPushButton):
                 QToolTip {
                     color: rgb(170, 170, 170);
                     background-color: rgb(71, 71, 71);
-                    border: 10px solid rgb(71, 71, 71)}''')
+                    border: 10px solid rgb(71, 71, 71)}""")
 
 
 class FlameLabel(QtWidgets.QLabel):
@@ -147,30 +147,30 @@ class FlameLabel(QtWidgets.QLabel):
         # Set label stylesheet based on label_type
 
         if label_type == 'normal':
-            self.setStyleSheet('''
+            self.setStyleSheet("""
                 QLabel {
                     color: rgb(154, 154, 154);
                     font: 14px "Discreet"}
                 QLabel:disabled {
-                    color: rgb(106, 106, 106)}''')
+                    color: rgb(106, 106, 106)}""")
         elif label_type == 'underline':
             self.setAlignment(QtCore.Qt.AlignCenter)
-            self.setStyleSheet('''
+            self.setStyleSheet("""
                 QLabel {
                     color: rgb(154, 154, 154);
                     border-bottom: 1px inset rgb(40, 40, 40);
                     font: 14px "Discreet"}
                 QLabel:disabled {
-                    color: rgb(106, 106, 106)}''')
+                    color: rgb(106, 106, 106)}""")
         elif label_type == 'background':
-            self.setStyleSheet('''
+            self.setStyleSheet("""
                 QLabel {
                     color: rgb(154, 154, 154);
                     background-color: rgb(30, 30, 30);
                     padding-left: 5px;
                     font: 14px "Discreet"}
                 QLabel:disabled {
-                    color: rgb(106, 106, 106)}''')
+                    color: rgb(106, 106, 106)}""")
 
 
 class FlameLineEdit(QtWidgets.QLineEdit):
@@ -195,7 +195,7 @@ class FlameLineEdit(QtWidgets.QLineEdit):
         self.setMinimumWidth(width)
         self.setMaximumWidth(max_width)
         self.setFocusPolicy(QtCore.Qt.ClickFocus)
-        self.setStyleSheet('''
+        self.setStyleSheet("""
             QLineEdit {
                 color: rgb(154, 154, 154);
                 background-color: rgb(55, 65, 75);
@@ -213,7 +213,7 @@ class FlameLineEdit(QtWidgets.QLineEdit):
             QToolTip {
                 color: rgb(170, 170, 170);
                 background-color: rgb(71, 71, 71);
-                border: none}''')
+                border: none}""")
 
 
 class FlameListWidget(QtWidgets.QListWidget):
@@ -234,7 +234,7 @@ class FlameListWidget(QtWidgets.QListWidget):
         self.setSpacing(3)
         self.setAlternatingRowColors(True)
         self.setUniformItemSizes(True)
-        self.setStyleSheet('''
+        self.setStyleSheet("""
             QListWidget {
                 color: #9a9a9a;
                 background-color: #2a2a2a;
@@ -243,7 +243,7 @@ class FlameListWidget(QtWidgets.QListWidget):
                 font: 14px "Discreet"}
             QListWidget::item:selected {
                 color: #d9d9d9;
-                background-color: #474747}''')
+                background-color: #474747}""")
 
 
 class FlameMessageWindow(QtWidgets.QDialog):
@@ -299,7 +299,7 @@ class FlameMessageWindow(QtWidgets.QDialog):
 
         self.message_text_edit = QtWidgets.QTextEdit(message)
         self.message_text_edit.setDisabled(True)
-        self.message_text_edit.setStyleSheet('''
+        self.message_text_edit.setStyleSheet("""
             QTextEdit {
                 color: rgb(154, 154, 154);
                 background-color: rgb(36, 36, 36);
@@ -308,7 +308,7 @@ class FlameMessageWindow(QtWidgets.QDialog):
                 border: none;
                 padding-left: 20px;
                 padding-right: 20px;
-                font: 12px "Discreet"}''')
+                font: 12px "Discreet"}""")
 
         if message_type in ('confirm', 'warning'):
             self.confirm_button = FlameButton(
@@ -427,7 +427,7 @@ class FlamePushButtonMenu(QtWidgets.QPushButton):
         self.setMinimumWidth(menu_width)
         self.setMaximumWidth(max_menu_width)  # is max necessary?
         self.setFocusPolicy(QtCore.Qt.NoFocus)
-        self.setStyleSheet('''
+        self.setStyleSheet("""
             QPushButton {
                 color: rgb(154, 154, 154);
                 background-color: rgb(45, 55, 68);
@@ -445,7 +445,7 @@ class FlamePushButtonMenu(QtWidgets.QPushButton):
             QToolTip {
                 color: rgb(170, 170, 170);
                 background-color: rgb(71, 71, 71);
-                border: 10px solid rgb(71, 71, 71)}''')
+                border: 10px solid rgb(71, 71, 71)}""")
 
         # Menu
         def match_width():
@@ -455,14 +455,14 @@ class FlamePushButtonMenu(QtWidgets.QPushButton):
         self.pushbutton_menu = QtWidgets.QMenu(self)
         self.pushbutton_menu.setFocusPolicy(QtCore.Qt.NoFocus)
         self.pushbutton_menu.aboutToShow.connect(match_width)
-        self.pushbutton_menu.setStyleSheet('''
+        self.pushbutton_menu.setStyleSheet("""
             QMenu {
                 color: rgb(154, 154, 154);
                 background-color: rgb(45, 55, 68);
                 border: none; font: 14px "Discreet"}
             QMenu::item:selected {
                 color: rgb(217, 217, 217);
-                background-color: rgb(58, 69, 81)}''')
+                background-color: rgb(58, 69, 81)}""")
 
         self.populate_menu(menu_options)
         self.setMenu(self.pushbutton_menu)
@@ -508,7 +508,7 @@ class FlameTokenPushButton(QtWidgets.QPushButton):
         self.setMinimumWidth(button_width)
         self.setMaximumWidth(button_max_width)
         self.setFocusPolicy(QtCore.Qt.NoFocus)
-        self.setStyleSheet('''
+        self.setStyleSheet("""
             QPushButton {
                 color: rgb(154, 154, 154);
                 background-color: rgb(45, 55, 68);
@@ -528,7 +528,7 @@ class FlameTokenPushButton(QtWidgets.QPushButton):
             QToolTip {
                 color: rgb(170, 170, 170);
                 background-color: rgb(71, 71, 71);
-                border: 10px solid rgb(71, 71, 71)}''')
+                border: 10px solid rgb(71, 71, 71)}""")
 
         def token_action_menu():
 
@@ -552,14 +552,14 @@ class FlameTokenPushButton(QtWidgets.QPushButton):
 
         token_menu = QtWidgets.QMenu(self)
         token_menu.setFocusPolicy(QtCore.Qt.NoFocus)
-        token_menu.setStyleSheet('''
+        token_menu.setStyleSheet("""
             QMenu {
                 color: rgb(154, 154, 154);
                 background-color: rgb(45, 55, 68);
                 border: none; font: 14px "Discreet"}
             QMenu::item:selected {
                 color: rgb(217, 217, 217);
-                background-color: rgb(58, 69, 81)}''')
+                background-color: rgb(58, 69, 81)}""")
 
         self.setMenu(token_menu)
 
