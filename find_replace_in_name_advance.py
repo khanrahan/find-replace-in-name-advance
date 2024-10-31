@@ -721,7 +721,7 @@ class FindReplace:
         corresponding regex.  The resulting regex is then appropriate to use with
         re.sub.
         """
-        find_split = re.split(r'([^*?$])', self.find)
+        find_split = re.split(r'([\^\*\?\$])', self.find)
 
         self.find_regex = ''
 
