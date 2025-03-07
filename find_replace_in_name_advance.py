@@ -2,13 +2,13 @@
 Script Name: Find & Replace in Name Advance
 Written By: Kieran Hanrahan
 
-Script Version: 3.0.1
+Script Version: 3.0.2
 Flame Version: 2025
 
 URL: http://github.com/khanrahan/find-replace-in-name-advance
 
 Creation Date: 02.21.24
-Update Date: 10.31.24
+Update Date: 03.07.25
 
 Description:
 
@@ -30,13 +30,13 @@ Menus:
 To Install:
 
     For all users, copy this file to:
-    /opt/Autodesk/shared/python
+    /opt/Autodesk/shared/python/
 
     For a specific user on Linux, copy this file to:
-    ~/flame/python
+    /home/<user_name>/flame/python/
 
     For a specific user on Mac, copy this file to:
-    /User/user_name/Library/Preferences/Autodesk/flame/python
+    /Users/<user_name>/Library/Preferences/Autodesk/flame/python/
 """
 
 import datetime as dt
@@ -49,7 +49,7 @@ import flame
 from PySide6 import QtCore, QtGui, QtWidgets
 
 TITLE = 'Find and Replace in Name Advance'
-VERSION_INFO = (3, 0, 1)
+VERSION_INFO = (3, 0, 2)
 VERSION = '.'.join([str(num) for num in VERSION_INFO])
 TITLE_VERSION = f'{TITLE} v{VERSION}'
 
@@ -287,7 +287,7 @@ class FlameMessageWindow(QtWidgets.QDialog):
         self.setMaximumSize(QtCore.QSize(500, 330))
         self.setStyleSheet('background-color: rgb(36, 36, 36)')
 
-        resolution = QtWidgets.QDesktopWidget().screenGeometry()
+        resolution = QtGui.QGuiApplication.primaryScreen().screenGeometry()
         self.move((resolution.width() / 2) - (self.frameSize().width() / 2),
                   (resolution.height() / 2) - (self.frameSize().height() / 2))
 
@@ -996,8 +996,7 @@ class FindReplace:
         self.save_window.setWindowTitle('Save Preset As...')
 
         # Center Window
-        resolution = QtWidgets.QDesktopWidget().screenGeometry()
-
+        resolution = QtGui.QGuiApplication.primaryScreen().screenGeometry()
         self.save_window.move(
             (resolution.width() / 2) - (self.save_window_dimensions['x'] / 2),
             (resolution.height() / 2) - (self.save_window_dimensions['y'] / 2 + 44))
@@ -1027,7 +1026,7 @@ class FindReplace:
         self.save_hbox.addWidget(self.save_btn_save)
 
         self.save_vbox = QtWidgets.QVBoxLayout()
-        self.save_vbox.setMargin(20)
+        self.save_vbox.setContentsMargins(20, 20, 20, 20)
         self.save_vbox.addLayout(self.save_grid)
         self.save_vbox.addSpacing(20)
         self.save_vbox.addLayout(self.save_hbox)
@@ -1168,7 +1167,6 @@ class FindReplace:
 
         # Center Window
         resolution = QtGui.QGuiApplication.primaryScreen().screenGeometry()
-
         self.window.move(
                 (resolution.width() / 2) - (self.window.frameSize().width() / 2),
                 (resolution.height() / 2) - (self.window.frameSize().height() / 2))
