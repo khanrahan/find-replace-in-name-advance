@@ -287,7 +287,7 @@ class FlameMessageWindow(QtWidgets.QDialog):
         self.setMaximumSize(QtCore.QSize(500, 330))
         self.setStyleSheet('background-color: rgb(36, 36, 36)')
 
-        resolution = QtWidgets.QDesktopWidget().screenGeometry()
+        resolution = QtGui.QGuiApplication.primaryScreen().screenGeometry()
         self.move((resolution.width() / 2) - (self.frameSize().width() / 2),
                   (resolution.height() / 2) - (self.frameSize().height() / 2))
 
@@ -996,8 +996,7 @@ class FindReplace:
         self.save_window.setWindowTitle('Save Preset As...')
 
         # Center Window
-        resolution = QtWidgets.QDesktopWidget().screenGeometry()
-
+        resolution = QtGui.QGuiApplication.primaryScreen().screenGeometry()
         self.save_window.move(
             (resolution.width() / 2) - (self.save_window_dimensions['x'] / 2),
             (resolution.height() / 2) - (self.save_window_dimensions['y'] / 2 + 44))
@@ -1027,7 +1026,7 @@ class FindReplace:
         self.save_hbox.addWidget(self.save_btn_save)
 
         self.save_vbox = QtWidgets.QVBoxLayout()
-        self.save_vbox.setMargin(20)
+        self.save_vbox.setContentsMargins(20, 20, 20, 20)
         self.save_vbox.addLayout(self.save_grid)
         self.save_vbox.addSpacing(20)
         self.save_vbox.addLayout(self.save_hbox)
@@ -1168,7 +1167,6 @@ class FindReplace:
 
         # Center Window
         resolution = QtGui.QGuiApplication.primaryScreen().screenGeometry()
-
         self.window.move(
                 (resolution.width() / 2) - (self.window.frameSize().width() / 2),
                 (resolution.height() / 2) - (self.window.frameSize().height() / 2))
