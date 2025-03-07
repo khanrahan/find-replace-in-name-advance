@@ -56,9 +56,23 @@ the ability to save and load presets.
 |v1.X.X|Flame 2021 up to 2021.2|
 
 ## Installation
-To make available to all users on the workstation, copy `find_replace_in_name_advance.py` to `/opt/Autodesk/shared/python`
 
-For specific users, copy to `/opt/Autodesk/user/<user name>/python`
+### Flame 2025 and newer
+To make available to all users on the workstation, copy `apply_text_timeline_fx_to_segments.py` to `/opt/Autodesk/shared/python/`
+
+For specific users, copy `apply_text_timeline_fx_to_segments.py` to the appropriate path below...
+|Platform|Path|
+|---|---|
+|Linux|`/home/<user_name>/flame/python/`|
+|Mac|`/Users/<user_name>/Library/Preferences/Autodesk/flame/python/`|
+
+### Flame 2021 up to 2024.2
+To make available to all users on the workstation, copy `apply_text_timeline_fx_to_segments.py` to `/opt/Autodesk/shared/python/`
+
+For specific users, copy `apply_text_timeline_fx_to_segments.py` to `/opt/Autodesk/user/<user name>/python/`
+
+### Last Step
+Finally, inside of Flame, go to Flame (fish) menu `->` Python `->` Rescan Python Hooks
 
 ## Menus
 - Right-click selected items on the Desktop `->` Edit... `->` Find and Replace in Name Advance
