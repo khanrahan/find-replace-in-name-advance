@@ -8,7 +8,7 @@ Flame Version: 2025
 URL: http://github.com/khanrahan/find-replace-in-name-advance
 
 Creation Date: 02.21.24
-Update Date: 10.31.24
+Update Date: 03.07.25
 
 Description:
 
