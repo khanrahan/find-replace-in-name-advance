@@ -30,13 +30,13 @@ Menus:
 To Install:
 
     For all users, copy this file to:
-    /opt/Autodesk/shared/python
+    /opt/Autodesk/shared/python/
 
     For a specific user on Linux, copy this file to:
-    ~/flame/python
+    /home/<user_name>/flame/python/
 
     For a specific user on Mac, copy this file to:
-    /User/user_name/Library/Preferences/Autodesk/flame/python
+    /Users/<user_name>/Library/Preferences/Autodesk/flame/python/
 """
 
 import datetime as dt
