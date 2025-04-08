@@ -1234,9 +1234,9 @@ class FindReplace:
         self.vbox = QtWidgets.QVBoxLayout()
         self.vbox.setContentsMargins(20, 20, 20, 20)
         self.vbox.addLayout(self.gridbox)
-        self.vbox.insertSpacing(1, 20)
+        self.vbox.addSpacing(20)
         self.vbox.addLayout(self.hbox1)
-        self.vbox.insertSpacing(3, 20)
+        self.vbox.addSpacing(20)
         self.vbox.addLayout(self.hbox2)
 
         self.window.setLayout(self.vbox)
