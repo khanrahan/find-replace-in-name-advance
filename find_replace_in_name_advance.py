@@ -1202,6 +1202,14 @@ class FindReplace:
         self.list_names = FlameListWidget(self.window)
         self.list_names.addItems(self.names_new)
 
+        # Shortcuts
+        self.shortcut_enter = QtGui.QShortcut(
+                QtGui.QKeySequence('Enter'), self.btn_ok, ok_button)
+        self.shortcut_escape = QtGui.QShortcut(
+                QtGui.QKeySequence('Escape'), self.btn_cancel, cancel_button)
+        self.shortcut_return = QtGui.QShortcut(
+                QtGui.QKeySequence('Return'), self.btn_ok, ok_button)
+
         # Layout
         self.gridbox = QtWidgets.QGridLayout()
         self.gridbox.setVerticalSpacing(10)
