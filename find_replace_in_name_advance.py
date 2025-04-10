@@ -1162,9 +1162,6 @@ class FindReplace:
         # Mac needs this to close the window
         self.window.setAttribute(QtCore.Qt.WA_DeleteOnClose)
 
-        # FlameLineEdit class needs this
-        self.window.setFocusPolicy(QtCore.Qt.StrongFocus)
-
         # Center Window
         resolution = QtGui.QGuiApplication.primaryScreen().screenGeometry()
         self.window.move(
@@ -1241,6 +1238,9 @@ class FindReplace:
 
         self.window.setLayout(self.vbox)
 
+        # Tab Order
+        self.window.setTabOrder(self.line_edit_find, self.line_edit_replace)
+        self.window.setTabOrder(self.line_edit_replace, self.line_edit_find)
 
         # Focus
         self.line_edit_find.setFocus()
