@@ -1,6 +1,6 @@
 """
 Script Name: Find & Replace in Name Advance
-Written By: Kieran Hanrahan
+Written by: Kieran Hanrahan
 
 Script Version: 3.1.0
 Flame Version: 2025
