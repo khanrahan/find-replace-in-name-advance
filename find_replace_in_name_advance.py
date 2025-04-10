@@ -2,13 +2,13 @@
 Script Name: Find & Replace in Name Advance
 Written By: Kieran Hanrahan
 
-Script Version: 3.0.2
+Script Version: 3.1.0
 Flame Version: 2025
 
 URL: http://github.com/khanrahan/find-replace-in-name-advance
 
 Creation Date: 02.21.24
-Update Date: 03.07.25
+Update Date: 04.10.25
 
 Description:
 
@@ -49,7 +49,7 @@ import flame
 from PySide6 import QtCore, QtGui, QtWidgets
 
 TITLE = 'Find and Replace in Name Advance'
-VERSION_INFO = (3, 0, 2)
+VERSION_INFO = (3, 1, 0)
 VERSION = '.'.join([str(num) for num in VERSION_INFO])
 TITLE_VERSION = f'{TITLE} v{VERSION}'
 
@@ -197,7 +197,7 @@ class FlameLineEdit(QtWidgets.QLineEdit):
         self.setMinimumHeight(28)
         self.setMinimumWidth(width)
         self.setMaximumWidth(max_width)
-        self.setFocusPolicy(QtCore.Qt.ClickFocus)
+        self.setFocusPolicy(QtCore.Qt.StrongFocus)
         self.setStyleSheet("""
             QLineEdit {
                 color: rgb(154, 154, 154);
@@ -1162,9 +1162,6 @@ class FindReplace:
         # Mac needs this to close the window
         self.window.setAttribute(QtCore.Qt.WA_DeleteOnClose)
 
-        # FlameLineEdit class needs this
-        self.window.setFocusPolicy(QtCore.Qt.StrongFocus)
-
         # Center Window
         resolution = QtGui.QGuiApplication.primaryScreen().screenGeometry()
         self.window.move(
@@ -1205,6 +1202,14 @@ class FindReplace:
         self.list_names = FlameListWidget(self.window)
         self.list_names.addItems(self.names_new)
 
+        # Shortcuts
+        self.shortcut_enter = QtGui.QShortcut(
+                QtGui.QKeySequence('Enter'), self.btn_ok, ok_button)
+        self.shortcut_escape = QtGui.QShortcut(
+                QtGui.QKeySequence('Escape'), self.btn_cancel, cancel_button)
+        self.shortcut_return = QtGui.QShortcut(
+                QtGui.QKeySequence('Return'), self.btn_ok, ok_button)
+
         # Layout
         self.gridbox = QtWidgets.QGridLayout()
         self.gridbox.setVerticalSpacing(10)
@@ -1234,15 +1239,21 @@ class FindReplace:
         self.vbox = QtWidgets.QVBoxLayout()
         self.vbox.setContentsMargins(20, 20, 20, 20)
         self.vbox.addLayout(self.gridbox)
-        self.vbox.insertSpacing(1, 20)
+        self.vbox.addSpacing(20)
         self.vbox.addLayout(self.hbox1)
-        self.vbox.insertSpacing(3, 20)
+        self.vbox.addSpacing(20)
         self.vbox.addLayout(self.hbox2)
 
         self.window.setLayout(self.vbox)
 
-        self.window.show()
+        # Tab Order
+        self.window.setTabOrder(self.line_edit_find, self.line_edit_replace)
+        self.window.setTabOrder(self.line_edit_replace, self.line_edit_find)
 
+        # Focus
+        self.line_edit_find.setFocus()
+
+        self.window.show()
         return self.window
 
 
