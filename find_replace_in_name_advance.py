@@ -197,7 +197,7 @@ class FlameLineEdit(QtWidgets.QLineEdit):
         self.setMinimumHeight(28)
         self.setMinimumWidth(width)
         self.setMaximumWidth(max_width)
-        self.setFocusPolicy(QtCore.Qt.ClickFocus)
+        self.setFocusPolicy(QtCore.Qt.StrongFocus)
         self.setStyleSheet("""
             QLineEdit {
                 color: rgb(154, 154, 154);
@@ -1241,8 +1241,11 @@ class FindReplace:
 
         self.window.setLayout(self.vbox)
 
-        self.window.show()
 
+        # Focus
+        self.line_edit_find.setFocus()
+
+        self.window.show()
         return self.window
 
 
