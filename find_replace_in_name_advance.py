@@ -502,7 +502,11 @@ class FlameTokenPushButton(QtWidgets.QPushButton):
         token_push_button = FlameTokenPushButton('Add Token', token_dict, token_dest)
     """
 
-    def __init__(self, button_name, token_dict, token_dest, button_width=110,
+#    def __init__(self, button_name, token_dict, token_dest, button_width=110,
+
+    signal_token_choice = QtCore.Signal(str)
+
+    def __init__(self, button_name, token_dict, button_width=110,
                  button_max_width=300, sort=False):
         super().__init__()
 
@@ -536,7 +540,8 @@ class FlameTokenPushButton(QtWidgets.QPushButton):
                 for key, value in token_dict.items():
                     if key == token:
                         token_name = value
-                        token_dest.insert(token_name)
+#                        token_dest.insert(token_name)
+                        self.signal_token_choice.emit(token_name)
 
             if sort:
                 # Sort by key. Lowercase precedes uppercase, before moving to next
@@ -560,10 +565,19 @@ class FlameTokenPushButton(QtWidgets.QPushButton):
             QMenu::item:selected {
                 color: rgb(217, 217, 217);
                 background-color: rgb(58, 69, 81)}""")
+        self.setMenu(self.token_menu)
 
-        self.setMenu(token_menu)
+        if self.sort:
+            # Sort by key. Lowercase precedes uppercase, before moving to next
+            # letter.  For example...  aa, AA, bb, BB, cc, CC.
+            tokens = sorted(self.token_dict.items(), key=lambda item: (item[0].upper(),
+                            item[0].isupper()))
+        else:
+            tokens = list(self.token_dict.items())
 
-        token_action_menu()
+        for name, token in tokens:
+            del token
+            self.token_menu.addAction(name, partial(insert_token, name))
 
 
 class SettingsStore:
@@ -774,6 +788,202 @@ class SavePresetWindow(QtWidgets.QDialog):
         self.setLayout(self.save_vbox)
 
 
+class MainWindow(QtWidgets.QWidget):
+    """A view class for the main window."""
+    signal_save = QtCore.Signal()
+    signal_delete = QtCore.Signal()
+    signal_find = QtCore.Signal(str)
+    signal_replace = QtCore.Signal(str)
+    signal_preset = QtCore.Signal()
+    signal_ok = QtCore.Signal()
+    signal_cancel = QtCore.Signal()
+
+    def __init__(self):
+        """Initialize the instance."""
+        super().__init__()
+        self.init_window()
+
+    def init_window(self):
+        """Create the pyside objects and layout the window."""
+        self.setMinimumSize(800, 130)
+        self.setStyleSheet('background-color: #272727')
+        self.setWindowTitle(TITLE_VERSION)
+
+        # Mac needs this to close the window
+        self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
+
+        # Keeps on top of Flame in Mac, or on top of all on Linux
+        self.setWindowFlags(QtCore.Qt.Tool)
+
+        # Labels
+        self.label_preset = FlameLabel('Preset', 'normal')
+        self.label_find = FlameLabel('Find ', 'normal')
+        self.label_replace = FlameLabel('Replace ', 'normal')
+
+        # Line Edits
+        self.line_edit_find = FlameLineEdit('')
+        self.line_edit_find.textChanged.connect(self.signal_find.emit)
+
+        self.line_edit_replace = FlameLineEdit('')
+        self.line_edit_replace.textChanged.connect(self.signal_replace.emit)
+
+        # Buttons
+        self.btn_preset = FlamePushButtonMenu(
+            '',
+            [],
+            menu_action=self.signal_preset.emit,
+        )
+        self.btn_preset.setMaximumSize(QtCore.QSize(4000, 28))  # span over to Save btn
+
+        self.btn_preset_save = FlameButton(
+            'Save', self.signal_save.emit, button_width=110)
+        self.btn_preset_delete = FlameButton(
+            'Delete', self.signal_delete.emit, button_width=110)
+
+        self.btn_wildcards = FlameTokenPushButton(
+            'Add Wildcard', {}, sort=True)
+        self.btn_tokens = FlameTokenPushButton(
+            'Add Token', {}, sort=True)
+
+        self.btn_ok = FlameButton('Ok', self.signal_ok.emit, button_color='blue')
+        self.btn_cancel = FlameButton('Cancel', self.signal_cancel.emit)
+
+        # List
+        self.list_names = FlameListWidget(self)
+        self.list_names.addItems([])
+
+        # Shortcuts
+        self.shortcut_enter = QtGui.QShortcut(
+            QtGui.QKeySequence('Enter'), self.btn_ok, self.signal_ok.emit)
+        self.shortcut_escape = QtGui.QShortcut(
+            QtGui.QKeySequence('Escape'), self.btn_cancel, self.signal_cancel.emit)
+        self.shortcut_return = QtGui.QShortcut(
+            QtGui.QKeySequence('Return'), self.btn_ok, self.signal_ok.emit)
+
+        # Layout
+        self.gridbox = QtWidgets.QGridLayout()
+        self.gridbox.setVerticalSpacing(10)
+        self.gridbox.setHorizontalSpacing(10)
+
+        self.gridbox.addWidget(self.label_preset, 0, 0)
+        self.gridbox.addWidget(self.btn_preset, 0, 1)
+        self.gridbox.addWidget(self.btn_preset_save, 0, 2)
+        self.gridbox.addWidget(self.btn_preset_delete, 0, 3)
+        self.gridbox.addWidget(self.label_find, 1, 0)
+        self.gridbox.addWidget(self.line_edit_find, 1, 1)
+        self.gridbox.addWidget(self.btn_wildcards, 1, 2)
+        self.gridbox.addWidget(self.label_replace, 2, 0)
+        self.gridbox.addWidget(self.line_edit_replace, 2, 1)
+        self.gridbox.addWidget(self.btn_tokens, 2, 2)
+
+        self.hbox1 = QtWidgets.QHBoxLayout()
+        self.hbox1.addSpacing(50)
+        self.hbox1.addWidget(self.list_names)
+        self.hbox1.addSpacing(50)
+
+        self.hbox2 = QtWidgets.QHBoxLayout()
+        self.hbox2.addStretch(1)
+        self.hbox2.addWidget(self.btn_cancel)
+        self.hbox2.addWidget(self.btn_ok)
+
+        self.vbox = QtWidgets.QVBoxLayout()
+        self.vbox.setContentsMargins(20, 20, 20, 20)
+        self.vbox.addLayout(self.gridbox)
+        self.vbox.addSpacing(20)
+        self.vbox.addLayout(self.hbox1)
+        self.vbox.addSpacing(20)
+        self.vbox.addLayout(self.hbox2)
+
+        self.setLayout(self.vbox)
+
+        # Tab Order
+        self.setTabOrder(self.line_edit_find, self.line_edit_replace)
+        self.setTabOrder(self.line_edit_replace, self.line_edit_find)
+
+        # Focus
+        self.line_edit_find.setFocus()
+
+        # Center Window
+        resolution = QtGui.QGuiApplication.primaryScreen().screenGeometry()
+        self.move(
+                (resolution.width() / 2) - (self.frameSize().width() / 2),
+                (resolution.height() / 2) - (self.frameSize().height() / 2))
+
+    def visible(self):
+        """Make the window visible."""
+        self.show()
+
+    @property
+    def preset(self):
+        """Get or set the currently selected preset name."""
+        return self.btn_preset.text()
+
+    @preset.setter
+    def preset(self, string):
+        self.btn_preset.setText(string)
+
+    @property
+    def presets(self):
+        """Get or set a list of the available preset names."""
+        self.btn_preset = []
+
+    @presets.setter
+    def presets(self, presets):
+        self.btn_preset.populate_menu(presets)
+
+    @property
+    def find(self):
+        """Get or set a string for the find terms."""
+        return self.line_edit_find.text()
+
+    @find.setter
+    def find(self, string):
+        self.line_edit_find.setText(string)
+
+    @property
+    def names(self):
+        """Get or set a list of the selected items' names."""
+        names_list = []
+        for index in range(self.list_names.count()):
+            names_list.append(self.list_names.item(index))
+        return names_list
+
+    @names.setter
+    def names(self, names):
+        self.list_names.clear()
+        self.list_names.addItems(names)
+
+    @property
+    def replace(self):
+        """Get or set a string for the replace terms."""
+        return self.line_edit_replace.text()
+
+    @replace.setter
+    def replace(self, string):
+        self.line_edit_replace.setText(string)
+
+    @property
+    def tokens(self):
+        """Get or set a dictionary of tokens available."""
+        return self.btn_tokens.token_dict
+
+    @tokens.setter
+    def tokens(self, tokens_dict):
+        self.btn_tokens.init_menu(tokens_dict)
+
+    @property
+    def wildcards(self):
+        """Get or set a dictionary of wildcards.
+
+        Wildcards are used to make matches in the find field.
+        """
+        return self.btn_wildcards.token_dict
+
+    @wildcards.setter
+    def wildcards(self, wildcards_dict):
+        self.btn_wildcards.init_menu(wildcards_dict)
+
+
 class FindReplace:
     """Find and replace in name for selected objects in Flame.
 
@@ -796,7 +1006,7 @@ class FindReplace:
         self.selection = selection
         self.target = target
 
-        if target == 'Timeline':
+        if self.target == 'Timeline':
             self.filter_selection()
 
         self.message(TITLE_VERSION)
@@ -839,11 +1049,24 @@ class FindReplace:
                 'Match All': '*', 'Match Any': '?', 'Match Start': '^',
                 'Match End': '$'}
 
-        # Save Window
-        self.save_window_dimensions = {'x': 500, 'y': 100}
+        # Windows
+        self.main_window = MainWindow()
+        self.main_window.signal_preset.connect(self.update_preset)
+        self.main_window.signal_save.connect(self.preset_save_button)
+        self.main_window.signal_delete.connect(self.preset_delete_button)
+        self.main_window.signal_find.connect(self.update_find)
+        self.main_window.signal_replace.connect(self.update_replace)
+        self.main_window.signal_ok.connect(self.ok_button)
+        self.main_window.signal_cancel.connect(self.cancel_button)
+
+        self.main_window.preset = self.settings.get_preset_names()[0]
+        self.main_window.presets = self.settings.get_preset_names()
+        self.main_window.find = self.find
+        self.main_window.replace = self.replace
+        self.main_window.names = self.names_new
 
         self.save_window = SavePresetWindow()
-        self.main_window()
+        self.main_window.visible()
 
     @staticmethod
     def message(string):
@@ -1028,6 +1251,34 @@ class FindReplace:
         self.names_new = [re.sub(self.find_regex, self.replace_resolved[index], item)
                           for index, item in enumerate(self.names)]
 
+    def update_find(self, string):
+        """Everything to update when find is changed."""
+        self.find = string
+
+        self.find_convert_wildcards_to_regex()
+        self.get_names_new()
+
+        # display final names
+        if self.find:
+            self.main_window.names = self.names_new
+
+        # or return to starting state
+        if not self.find:
+            self.main_window.names = self.names
+
+    def update_replace(self, string):
+        """Everything to update when replace is changed."""
+        # the below .encode is necessary because otherwise it will return unicode
+        # and PyClip.name.set_value() does not take unicode
+        self.replace = string
+
+        self.replace_sanitize()
+        self.replace_resolve_tokens()
+
+        if self.find:
+            self.get_names_new()
+            self.main_window.names = self.names_new
+
     def update_names(self):
         """Change names of the names of the selected objects, skip if unnecesary.
 
@@ -1044,257 +1295,106 @@ class FindReplace:
             clip.name.set_value(self.names_new[num])
             self.message(f'Renamed {self.names[num]} to {self.names_new[num]}')
 
-    def main_window(self):
-        """The primary window."""
+    def update_preset(self):
+        """Update fields when preset is changed."""
+        preset_name = self.main_window.preset
 
-        def get_all_tokens():
-            """Assemble token names & <tokens>.
+        if preset_name:  # might be empty str if all presets were deleted
+            for preset in self.settings.get_presets():
+                if preset.find('name').text == preset_name:
+                    self.main_window.find = preset.find('find').text
+                    self.main_window.replace = preset.find('replace').text
+                    break  # should not be any duplicates
 
-            FlameTokenPushButton wants a dict that is only {name: <token>} so need to
-            simplify it with a dict comprehension.
-            """
-            tokens_generic = {
-                    key: values[0] for key, values in self.tokens_generic.items()}
-            tokens_unique = {
-                    key: values[0] for key, values in self.tokens_unique[0].items()}
-            return {**tokens_generic, **tokens_unique}
+    def preset_save_button(self):
+        """Triggered when the Save button the Presets line is pressed."""
+        self.save_window.name = self.main_window.preset
+        if self.save_window.exec() == QtWidgets.QDialog.Accepted:
+            duplicate = self.settings.duplicate_check(self.save_window.name)
 
-        def get_selected_preset():
-            """Get preset that should be displayed or return empty string."""
+            if duplicate and FlameMessageWindow(
+                    'Overwrite Existing Preset', 'confirm', 'Are you '
+                    + 'sure want to permanently overwrite this preset?' + '<br/>'
+                    + 'This operation cannot be undone.'):
+                self.settings.overwrite_preset(
+                        name=self.save_window.name,
+                        find=self.find,
+                        replace=self.replace,
+                )
+
+            if not duplicate:
+                self.settings.add_preset(
+                        name=self.save_window.name,
+                        find=self.find,
+                        replace=self.replace
+                )
+                self.settings.sort()
+
             try:
-                selected_preset = self.settings.get_preset_names()[0]
-            except IndexError:
-                selected_preset = ''
-
-            return selected_preset
-
-        def update_preset():
-            """Update fields when preset is changed."""
-            preset_name = self.btn_preset.text()
-            self.selected_preset_name = self.btn_preset.text()
-
-            if preset_name:  # might be empty str if all presets were deleted
-                for preset in self.settings.get_presets():
-                    if preset.find('name').text == preset_name:
-                        self.line_edit_find.setText(preset.find('find').text)
-                        self.line_edit_replace.setText(preset.find('replace').text)
-                        break  # should not be any duplicates
-
-        def preset_delete_button():
-            """Triggered when the Delete button on the Preset line is pressed."""
-            if FlameMessageWindow(
-                    'Confirm Operation', 'confirm', 'Are you sure want to'
-                    + ' permanently delete this preset?' + '<br/>' + 'This operation'
-                    + ' cannot be undone.'):
-                preset_name = self.btn_preset.text()
-
-                for preset in self.settings.get_presets():
-                    if preset.find('name').text == preset_name:
-                        self.settings.delete(preset)
-                        self.message(f'{preset_name} preset deleted from ' +
-                                     f'{self.settings_file}')
-
                 self.settings.save()
+                self.message(f'{self.save_window.name} preset saved ' +
+                             f'to {self.settings_file}')
+            except OSError:  # removed IOError based on linter rule UP024
+                FlameMessageWindow(
+                    'Error', 'error',
+                    f'Check permissions on {self.settings_file}')
 
-            # Reload presets button
-            self.settings.reload()
-            self.btn_preset.populate_menu(self.settings.get_preset_names())
-            self.btn_preset.setText(get_selected_preset())
-            update_preset()
+            self.main_window.presets = self.settings.get_preset_names()
+            self.main_window.preset = self.save_window.name
 
-        def preset_save_button():
-            """Triggered when the Save button the Presets line is pressed."""
-            self.save_window.name = self.btn_preset.text()
-            if self.save_window.exec() == QtWidgets.QDialog.Accepted:
-                duplicate = self.settings.duplicate_check(self.save_window.name)
+    def preset_delete_button(self):
+        """Triggered when the Delete button on the Preset line is pressed."""
+        if FlameMessageWindow(
+                'Confirm Operation', 'confirm', 'Are you sure want to'
+                + ' permanently delete this preset?' + '<br/>' + 'This operation'
+                + ' cannot be undone.'):
+            preset_name = self.main_window.preset
 
-                if duplicate and FlameMessageWindow(
-                        'Overwrite Existing Preset', 'confirm', 'Are you '
-                        + 'sure want to permanently overwrite this preset?' + '<br/>'
-                        + 'This operation cannot be undone.'):
-                    self.settings.overwrite_preset(
-                            name=self.save_window.name,
-                            find=self.find,
-                            replace=self.replace,
-                    )
+            for preset in self.settings.get_presets():
+                if preset.find('name').text == preset_name:
+                    self.settings.delete(preset)
+                    self.message(f'{preset_name} preset deleted from ' +
+                                 f'{self.settings_file}')
 
-                if not duplicate:
-                    self.settings.add_preset(
-                            name=self.save_window.name,
-                            find=self.find,
-                            replace=self.replace
-                    )
-                    self.settings.sort()
+            self.settings.save()
 
-                try:
-                    self.settings.save()
-                    self.message(f'{self.save_window.name} preset saved ' +
-                                 f'to {self.settings_file}')
-                except OSError:  # removed IOError based on linter rule UP024
-                    FlameMessageWindow(
-                        'Error', 'error',
-                        f'Check permissions on {self.settings_file}')
+        # Reload presets button
+        self.settings.reload()
+        self.main_window.presets = self.settings.get_preset_names()
+        self.main_window.preset = self.settings.get_preset_names()[0]
+        self.update_preset()
 
-                self.btn_preset.populate_menu(self.settings.get_preset_names())
-                self.btn_preset.setText(self.save_window.name)
+    def ok_button(self):
+        """Execute when Ok button is pressed."""
+        self.main_window.close()
+        self.update_names()
+        self.refresh()
+        self.message('Done!')
 
-        def update_find():
-            """Everything to update when find is changed."""
-            self.find = self.line_edit_find.text()
-
-            self.find_convert_wildcards_to_regex()
-            self.get_names_new()
-            self.list_names.clear()
-
-            # display final names
-            if self.find:
-                self.list_names.addItems(self.names_new)
-
-            # or return to starting state
-            if not self.find:
-                self.list_names.addItems(self.names)
-
-        def update_replace():
-            """Everything to update when replace is changed."""
-            # the below .encode is necessary because otherwise it will return unicode
-            # and PyClip.name.set_value() does not take unicode
-            self.replace = self.line_edit_replace.text()
-
-            self.replace_sanitize()
-            self.replace_resolve_tokens()
-
-            if self.find:
-                self.get_names_new()
-                self.list_names.clear()
-                self.list_names.addItems(self.names_new)
-
-        def ok_button():
-
-            self.window.close()
-            self.update_names()
-            self.refresh()
-            self.message('Done!')
-
-        def cancel_button():
-
-            self.window.close()
-            self.message('Cancelled!')
-
-        self.window = QtWidgets.QWidget()
-
-        self.window.setMinimumSize(800, 130)
-        self.window.setStyleSheet('background-color: #272727')
-        self.window.setWindowTitle(TITLE_VERSION)
-
-        # Mac needs this to close the window
-        self.window.setAttribute(QtCore.Qt.WA_DeleteOnClose)
-
-        # Center Window
-        resolution = QtGui.QGuiApplication.primaryScreen().screenGeometry()
-        self.window.move(
-                (resolution.width() / 2) - (self.window.frameSize().width() / 2),
-                (resolution.height() / 2) - (self.window.frameSize().height() / 2))
-
-        # Labels
-        self.label_preset = FlameLabel('Preset', 'normal')
-        self.label_find = FlameLabel('Find ', 'normal')
-        self.label_replace = FlameLabel('Replace ', 'normal')
-
-        # Line Edits
-        self.line_edit_find = FlameLineEdit(self.find)
-        self.line_edit_find.textChanged.connect(update_find)
-
-        self.line_edit_replace = FlameLineEdit(self.replace)
-        self.line_edit_replace.textChanged.connect(update_replace)
-
-        # Buttons
-        self.btn_preset = FlamePushButtonMenu(
-            get_selected_preset(),
-            self.settings.get_preset_names(),
-            menu_action=update_preset
-        )
-        self.btn_preset.setMaximumSize(QtCore.QSize(4000, 28))  # span over to Save btn
-
-        self.btn_preset_save = FlameButton(
-                'Save', preset_save_button, button_width=110)
-        self.btn_preset_delete = FlameButton(
-                'Delete', preset_delete_button, button_width=110)
-
-        self.btn_wildcards = FlameTokenPushButton(
-                'Add Wildcard', self.wildcards, self.line_edit_find, sort=True)
-        self.btn_tokens = FlameTokenPushButton(
-                'Add Token', get_all_tokens(), self.line_edit_replace, sort=True)
-
-        self.btn_ok = FlameButton('Ok', ok_button, button_color='blue')
-        self.btn_cancel = FlameButton('Cancel', cancel_button)
-
-        # List
-        self.list_names = FlameListWidget(self.window)
-        self.list_names.addItems(self.names_new)
-
-        # Shortcuts
-        self.shortcut_enter = QtGui.QShortcut(
-                QtGui.QKeySequence('Enter'), self.btn_ok, ok_button)
-        self.shortcut_escape = QtGui.QShortcut(
-                QtGui.QKeySequence('Escape'), self.btn_cancel, cancel_button)
-        self.shortcut_return = QtGui.QShortcut(
-                QtGui.QKeySequence('Return'), self.btn_ok, ok_button)
-
-        # Layout
-        self.gridbox = QtWidgets.QGridLayout()
-        self.gridbox.setVerticalSpacing(10)
-        self.gridbox.setHorizontalSpacing(10)
-
-        self.gridbox.addWidget(self.label_preset, 0, 0)
-        self.gridbox.addWidget(self.btn_preset, 0, 1)
-        self.gridbox.addWidget(self.btn_preset_save, 0, 2)
-        self.gridbox.addWidget(self.btn_preset_delete, 0, 3)
-        self.gridbox.addWidget(self.label_find, 1, 0)
-        self.gridbox.addWidget(self.line_edit_find, 1, 1)
-        self.gridbox.addWidget(self.btn_wildcards, 1, 2)
-        self.gridbox.addWidget(self.label_replace, 2, 0)
-        self.gridbox.addWidget(self.line_edit_replace, 2, 1)
-        self.gridbox.addWidget(self.btn_tokens, 2, 2)
-
-        self.hbox1 = QtWidgets.QHBoxLayout()
-        self.hbox1.addSpacing(50)
-        self.hbox1.addWidget(self.list_names)
-        self.hbox1.addSpacing(50)
-
-        self.hbox2 = QtWidgets.QHBoxLayout()
-        self.hbox2.addStretch(1)
-        self.hbox2.addWidget(self.btn_cancel)
-        self.hbox2.addWidget(self.btn_ok)
-
-        self.vbox = QtWidgets.QVBoxLayout()
-        self.vbox.setContentsMargins(20, 20, 20, 20)
-        self.vbox.addLayout(self.gridbox)
-        self.vbox.addSpacing(20)
-        self.vbox.addLayout(self.hbox1)
-        self.vbox.addSpacing(20)
-        self.vbox.addLayout(self.hbox2)
-
-        self.window.setLayout(self.vbox)
-
-        # Tab Order
-        self.window.setTabOrder(self.line_edit_find, self.line_edit_replace)
-        self.window.setTabOrder(self.line_edit_replace, self.line_edit_find)
-
-        # Focus
-        self.line_edit_find.setFocus()
-
-        self.window.show()
-        return self.window
+    def cancel_button(self):
+        """Execute when Cancel button is pressed."""
+        self.main_window.close()
+        self.message('Cancelled!')
 
 
 def find_replace_media_panel(selection):
-    """Call class with Media Panel target."""
-    FindReplace(selection, target='Media Panel')
+    """Call class with Media Panel target.
+
+    Return necessary to prevent window from closing immediately due to going out of
+    scope.
+    """
+    find_replace = FindReplace(selection, target='Media Panel')
+    return find_replace
 
 
 def find_replace_timeline(selection):
-    """Call class with Timeline target."""
-    FindReplace(selection, target='Timeline')
+    """Call class with Timeline target.
+
+    Return necessary to prevent window from closing immediately due to going out of
+    scope.
+    """
+    find_replace = FindReplace(selection, target='Timeline')
+    return find_replace
 
 
 def scope_selection_media_panel(selection):
