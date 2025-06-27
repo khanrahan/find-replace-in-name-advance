@@ -703,6 +703,77 @@ class SettingsStore:
         self.tree.write(self.file)
 
 
+class SavePresetWindow(QtWidgets.QDialog):
+    """View to confirm name of preset before saving."""
+
+    def __init__(self):
+        """Initialize the instance.
+
+        Args:
+            parent: Pyside object to make this window a child of.
+        """
+        super().__init__()
+        self.dimensions = {'x': 500, 'y': 100}
+        self.init_window()
+
+    @property
+    def name(self):
+        """Get the preset name."""
+        return self.line_edit_preset_name.text()
+
+    @name.setter
+    def name(self, string):
+        """Set the present name."""
+        self.line_edit_preset_name.setText(string)
+
+    def init_window(self):
+        """Initialize the window."""
+        self.setMinimumSize(
+                self.dimensions['x'], self.dimensions['y'])
+
+        self.setStyleSheet('background-color: #272727')
+        self.setWindowTitle('Save Preset As...')
+
+        # Center Window
+        resolution = QtGui.QGuiApplication.primaryScreen().screenGeometry()
+        self.move(
+            (resolution.width() / 2) - (self.dimensions['x'] / 2),
+            (resolution.height() / 2) - (self.dimensions['y'] / 2 + 44))
+
+        # Labels
+        self.label_preset_name = FlameLabel('Preset Name', 'normal')
+        self.label_preset_pattern = FlameLabel('Pattern', 'normal')
+
+        # Line Edits
+        self.line_edit_preset_name = FlameLineEdit('')
+
+        # Buttons
+        self.save_btn_save = FlameButton(
+            'Save', self.accept, button_color='blue', button_width=110)
+        self.save_btn_cancel = FlameButton(
+            'Cancel', self.reject, button_width=110)
+
+        # Layout
+        self.save_grid = QtWidgets.QGridLayout()
+        self.save_grid.setVerticalSpacing(10)
+        self.save_grid.setHorizontalSpacing(10)
+        self.save_grid.addWidget(self.label_preset_name, 0, 0)
+        self.save_grid.addWidget(self.line_edit_preset_name, 0, 1)
+
+        self.save_hbox = QtWidgets.QHBoxLayout()
+        self.save_hbox.addStretch(1)
+        self.save_hbox.addWidget(self.save_btn_cancel)
+        self.save_hbox.addWidget(self.save_btn_save)
+
+        self.save_vbox = QtWidgets.QVBoxLayout()
+        self.save_vbox.setContentsMargins(20, 20, 20, 20)
+        self.save_vbox.addLayout(self.save_grid)
+        self.save_vbox.addSpacing(20)
+        self.save_vbox.addLayout(self.save_hbox)
+
+        self.setLayout(self.save_vbox)
+
+
 class FindReplace:
     """Find and replace in name for selected objects in Flame.
 
@@ -771,6 +842,7 @@ class FindReplace:
         # Save Window
         self.save_window_dimensions = {'x': 500, 'y': 100}
 
+        self.save_window = SavePresetWindow()
         self.main_window()
 
     @staticmethod
@@ -972,119 +1044,6 @@ class FindReplace:
             clip.name.set_value(self.names_new[num])
             self.message(f'Renamed {self.names[num]} to {self.names_new[num]}')
 
-    def save_preset_window(self, preset_name):
-        """Smaller window with save dialog.
-
-        Args:
-        preset_name: str: Initial name to display in the Preset Name field.
-        """
-        def save_preset():
-            """Save new preset to XML file."""
-            self.settings.add_preset(
-                    name=self.line_edit_preset_name.text(),
-                    find=self.find,
-                    replace=self.replace
-            )
-
-            self.settings.sort()
-
-            try:
-                self.settings.save()
-                self.message(f'{self.line_edit_preset_name.text()} ' +
-                             f'preset saved to  {self.settings_file}')
-            except OSError:  # removed IOError based on linter rule UP024
-                FlameMessageWindow(
-                    'Error', 'error',
-                    f'Check permissions on {self.settings_file}')
-
-        def save_button():
-            """Triggered when the Save button at the bottom is pressed."""
-            duplicate = self.settings.duplicate_check(
-                    self.line_edit_preset_name.text())
-
-            if duplicate and FlameMessageWindow(
-                    'Overwrite Existing Preset', 'confirm', 'Are you '
-                    + 'sure want to permanently overwrite this preset?' + '<br/>'
-                    + 'This operation cannot be undone.'):
-                self.settings.overwrite_preset(
-                        name=self.line_edit_preset_name.text(),
-                        find=self.find,
-                        replace=self.replace
-                )
-
-                try:
-                    self.settings.save()
-                    self.message(f'{self.line_edit_preset_name.text()} preset saved ' +
-                                 f'to {self.settings_file}')
-                except OSError:  # removed IOError based on linter rule UP024
-                    FlameMessageWindow(
-                        'Error', 'error',
-                        f'Check permissions on {self.settings_file}')
-
-                self.btn_preset.populate_menu(self.settings.get_preset_names())
-                self.btn_preset.setText(self.line_edit_preset_name.text())
-                self.save_window.close()
-
-            if not duplicate:
-                save_preset()
-                self.btn_preset.populate_menu(self.settings.get_preset_names())
-                self.btn_preset.setText(self.line_edit_preset_name.text())
-                self.save_window.close()
-
-        def cancel_button():
-            """Triggered when the Cancel button at the bottom is pressed."""
-            self.save_window.close()
-
-        self.save_window = QtWidgets.QWidget()
-
-        self.save_window.setMinimumSize(
-                self.save_window_dimensions['x'], self.save_window_dimensions['y'])
-
-        self.save_window.setStyleSheet('background-color: #272727')
-        self.save_window.setWindowTitle('Save Preset As...')
-
-        # Center Window
-        resolution = QtGui.QGuiApplication.primaryScreen().screenGeometry()
-        self.save_window.move(
-            (resolution.width() / 2) - (self.save_window_dimensions['x'] / 2),
-            (resolution.height() / 2) - (self.save_window_dimensions['y'] / 2 + 44))
-
-        # Labels
-        self.label_preset_name = FlameLabel('Preset Name', 'normal')
-        self.label_preset_pattern = FlameLabel('Pattern', 'normal')
-
-        # Line Edits
-        self.line_edit_preset_name = FlameLineEdit(preset_name)
-
-        # Buttons
-        self.save_btn_save = FlameButton(
-            'Save', save_button, button_color='blue', button_width=110)
-        self.save_btn_cancel = FlameButton('Cancel', cancel_button, button_width=110)
-
-        # Layout
-        self.save_grid = QtWidgets.QGridLayout()
-        self.save_grid.setVerticalSpacing(10)
-        self.save_grid.setHorizontalSpacing(10)
-        self.save_grid.addWidget(self.label_preset_name, 0, 0)
-        self.save_grid.addWidget(self.line_edit_preset_name, 0, 1)
-
-        self.save_hbox = QtWidgets.QHBoxLayout()
-        self.save_hbox.addStretch(1)
-        self.save_hbox.addWidget(self.save_btn_cancel)
-        self.save_hbox.addWidget(self.save_btn_save)
-
-        self.save_vbox = QtWidgets.QVBoxLayout()
-        self.save_vbox.setContentsMargins(20, 20, 20, 20)
-        self.save_vbox.addLayout(self.save_grid)
-        self.save_vbox.addSpacing(20)
-        self.save_vbox.addLayout(self.save_hbox)
-
-        self.save_window.setLayout(self.save_vbox)
-
-        self.save_window.show()
-
-        return self.save_window
-
     def main_window(self):
         """The primary window."""
 
@@ -1145,7 +1104,39 @@ class FindReplace:
 
         def preset_save_button():
             """Triggered when the Save button the Presets line is pressed."""
-            self.save_preset_window(self.btn_preset.text())
+            self.save_window.name = self.btn_preset.text()
+            if self.save_window.exec() == QtWidgets.QDialog.Accepted:
+                duplicate = self.settings.duplicate_check(self.save_window.name)
+
+                if duplicate and FlameMessageWindow(
+                        'Overwrite Existing Preset', 'confirm', 'Are you '
+                        + 'sure want to permanently overwrite this preset?' + '<br/>'
+                        + 'This operation cannot be undone.'):
+                    self.settings.overwrite_preset(
+                            name=self.save_window.name,
+                            find=self.find,
+                            replace=self.replace,
+                    )
+
+                if not duplicate:
+                    self.settings.add_preset(
+                            name=self.save_window.name,
+                            find=self.find,
+                            replace=self.replace
+                    )
+                    self.settings.sort()
+
+                try:
+                    self.settings.save()
+                    self.message(f'{self.save_window.name} preset saved ' +
+                                 f'to {self.settings_file}')
+                except OSError:  # removed IOError based on linter rule UP024
+                    FlameMessageWindow(
+                        'Error', 'error',
+                        f'Check permissions on {self.settings_file}')
+
+                self.btn_preset.populate_menu(self.settings.get_preset_names())
+                self.btn_preset.setText(self.save_window.name)
 
         def update_find():
             """Everything to update when find is changed."""
