@@ -720,13 +720,13 @@ class SettingsStore:
 class SavePresetWindow(QtWidgets.QDialog):
     """View to confirm name of preset before saving."""
 
-    def __init__(self):
+    def __init__(self, parent):
         """Initialize the instance.
 
         Args:
             parent: Pyside object to make this window a child of.
         """
-        super().__init__()
+        super().__init__(parent)
         self.dimensions = {'x': 500, 'y': 100}
         self.init_window()
 
@@ -1065,7 +1065,7 @@ class FindReplace:
         self.main_window.replace = self.replace
         self.main_window.names = self.names_new
 
-        self.save_window = SavePresetWindow()
+        self.save_window = SavePresetWindow(self.main_window)
         self.main_window.visible()
 
     @staticmethod
