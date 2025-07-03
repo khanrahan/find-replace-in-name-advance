@@ -540,7 +540,6 @@ class FlameTokenPushButton(QtWidgets.QPushButton):
                 for key, value in token_dict.items():
                     if key == token:
                         token_name = value
-#                        token_dest.insert(token_name)
                         self.signal_token_choice.emit(token_name)
 
             if sort:
@@ -549,7 +548,7 @@ class FlameTokenPushButton(QtWidgets.QPushButton):
                 tokens = sorted(token_dict.items(), key=lambda item: (item[0].upper(),
                                 item[0].isupper()))
             else:
-                tokens = [(key, value) for key, value in token_dict.items()]
+                tokens = list(token_dict.items())
 
             for name, token in tokens:
                 del token
