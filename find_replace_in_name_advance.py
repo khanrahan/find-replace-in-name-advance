@@ -502,18 +502,23 @@ class FlameTokenPushButton(QtWidgets.QPushButton):
         token_push_button = FlameTokenPushButton('Add Token', token_dict, token_dest)
     """
 
-#    def __init__(self, button_name, token_dict, token_dest, button_width=110,
-
-    signal_token_choice = QtCore.Signal(str)
-
-    def __init__(self, button_name, token_dict, button_width=110,
+    def __init__(self, button_name, token_dict, token_dest, button_width=110,
                  button_max_width=300, sort=False):
         super().__init__()
+        self.button_name = button_name
+        self.token_dict = token_dict
+        self.token_dest = token_dest
+        self.button_width = button_width
+        self.button_max_width = button_max_width
+        self.sort = sort
+        self.init_button()
+        self.init_menu(self.token_dict)
 
-        self.setText(button_name)
+    def init_button(self):
+        self.setText(self.button_name)
         self.setMinimumHeight(28)
-        self.setMinimumWidth(button_width)
-        self.setMaximumWidth(button_max_width)
+        self.setMinimumWidth(self.button_width)
+        self.setMaximumWidth(self.button_max_width)
         self.setFocusPolicy(QtCore.Qt.NoFocus)
         self.setStyleSheet("""
             QPushButton {
@@ -534,29 +539,17 @@ class FlameTokenPushButton(QtWidgets.QPushButton):
                 background-color: rgb(71, 71, 71);
                 border: 10px solid rgb(71, 71, 71)}""")
 
-        def token_action_menu():
+    def init_menu(self, token_dict):
+        """Create the dropdown menu of tokens."""
+        def insert_token(token):
+            for key, value in token_dict.items():
+                if key == token:
+                    token_name = value
+                    self.token_dest.insert(token_name)
 
-            def insert_token(token):
-                for key, value in token_dict.items():
-                    if key == token:
-                        token_name = value
-                        self.signal_token_choice.emit(token_name)
-
-            if sort:
-                # Sort by key. Lowercase precedes uppercase, before moving to next
-                # letter.  For example...  aa, AA, bb, BB, cc, CC.
-                tokens = sorted(token_dict.items(), key=lambda item: (item[0].upper(),
-                                item[0].isupper()))
-            else:
-                tokens = list(token_dict.items())
-
-            for name, token in tokens:
-                del token
-                token_menu.addAction(name, partial(insert_token, name))
-
-        token_menu = QtWidgets.QMenu(self)
-        token_menu.setFocusPolicy(QtCore.Qt.NoFocus)
-        token_menu.setStyleSheet("""
+        self.token_menu = QtWidgets.QMenu(self)
+        self.token_menu.setFocusPolicy(QtCore.Qt.NoFocus)
+        self.token_menu.setStyleSheet("""
             QMenu {
                 color: rgb(154, 154, 154);
                 background-color: rgb(45, 55, 68);
@@ -569,10 +562,10 @@ class FlameTokenPushButton(QtWidgets.QPushButton):
         if self.sort:
             # Sort by key. Lowercase precedes uppercase, before moving to next
             # letter.  For example...  aa, AA, bb, BB, cc, CC.
-            tokens = sorted(self.token_dict.items(), key=lambda item: (item[0].upper(),
+            tokens = sorted(token_dict.items(), key=lambda item: (item[0].upper(),
                             item[0].isupper()))
         else:
-            tokens = list(self.token_dict.items())
+            tokens = list(token_dict.items())
 
         for name, token in tokens:
             del token
@@ -789,11 +782,11 @@ class SavePresetWindow(QtWidgets.QDialog):
 
 class MainWindow(QtWidgets.QWidget):
     """A view class for the main window."""
+    signal_preset = QtCore.Signal()
     signal_save = QtCore.Signal()
     signal_delete = QtCore.Signal()
     signal_find = QtCore.Signal(str)
     signal_replace = QtCore.Signal(str)
-    signal_preset = QtCore.Signal()
     signal_ok = QtCore.Signal()
     signal_cancel = QtCore.Signal()
 
@@ -840,9 +833,9 @@ class MainWindow(QtWidgets.QWidget):
             'Delete', self.signal_delete.emit, button_width=110)
 
         self.btn_wildcards = FlameTokenPushButton(
-            'Add Wildcard', {}, sort=True)
+            'Add Wildcard', {}, self.line_edit_find, sort=True)
         self.btn_tokens = FlameTokenPushButton(
-            'Add Token', {}, sort=True)
+            'Add Token', {}, self.line_edit_replace, sort=True)
 
         self.btn_ok = FlameButton('Ok', self.signal_ok.emit, button_color='blue')
         self.btn_cancel = FlameButton('Cancel', self.signal_cancel.emit)
@@ -1061,7 +1054,9 @@ class FindReplace:
         self.main_window.preset = self.settings.get_preset_names()[0]
         self.main_window.presets = self.settings.get_preset_names()
         self.main_window.find = self.find
+        self.main_window.wildcards = self.wildcards
         self.main_window.replace = self.replace
+        self.main_window.tokens = self.get_all_tokens()
         self.main_window.names = self.names_new
 
         self.save_window = SavePresetWindow(self.main_window)
@@ -1214,6 +1209,18 @@ class FindReplace:
             obj_tokens = {}
             obj_tokens['Shot Name'] = ['<shot name>', self.get_token_shot_name(item)]
             self.tokens_unique.append(obj_tokens)
+
+    def get_all_tokens(self):
+        """Assemble token names & <tokens>.
+
+        FlameTokenPushButton wants a dict that is only {name: <token>} so need to
+        simplify it with a dict comprehension.
+        """
+        tokens_generic = {
+                key: values[0] for key, values in self.tokens_generic.items()}
+        tokens_unique = {
+                key: values[0] for key, values in self.tokens_unique[0].items()}
+        return {**tokens_generic, **tokens_unique}
 
     def replace_sanitize(self):
         """Replace invalid characters with an underscore.
