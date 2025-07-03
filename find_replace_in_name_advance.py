@@ -1095,8 +1095,8 @@ class FindReplace:
         click range selection of segments on the timeline, but this will also include
         the transitions between each segment which we do not want to rename.
         """
-        self.selection = tuple([item for item in self.selection
-                                if not isinstance(item, flame.PyTransition)])
+        self.selection = tuple(item for item in self.selection
+                               if not isinstance(item, flame.PyTransition))
 
     def load_find(self):
         """Load the first preset's find pattern or leave blank."""
