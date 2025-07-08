@@ -790,9 +790,9 @@ class MainWindow(QtWidgets.QWidget):
     signal_ok = QtCore.Signal()
     signal_cancel = QtCore.Signal()
 
-    def __init__(self):
+    def __init__(self, parent_widget=None):
         """Initialize the instance."""
-        super().__init__()
+        super().__init__(parent=parent_widget)
         self.init_window()
 
     def init_window(self):
@@ -804,7 +804,7 @@ class MainWindow(QtWidgets.QWidget):
         # Mac needs this to close the window
         self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
 
-        # Keeps on top of Flame in Mac, or on top of all on Linux
+        # Keeps on top of Flame but not other windows
         self.setWindowFlags(QtCore.Qt.Tool)
 
         # Labels
@@ -897,13 +897,15 @@ class MainWindow(QtWidgets.QWidget):
 
         # Center Window
         resolution = QtGui.QGuiApplication.primaryScreen().screenGeometry()
+        print(f'screenGeometry is {resolution}')
+        print(f'availableGeometry is {QtWidgets.QApplication.primaryScreen().availableGeometry()}')
         self.move(
                 (resolution.width() / 2) - (self.frameSize().width() / 2),
                 (resolution.height() / 2) - (self.frameSize().height() / 2))
 
-    def visible(self):
-        """Make the window visible."""
-        self.show()
+#   def visible(self):
+#       """Make the window visible."""
+#       self.show()
 
     @property
     def preset(self):
@@ -1042,7 +1044,8 @@ class FindReplace:
                 'Match End': '$'}
 
         # Windows
-        self.main_window = MainWindow()
+        self.parent_window = QtWidgets.QApplication.activeWindow()
+        self.main_window = MainWindow(self.parent_window)
         self.main_window.signal_preset.connect(self.update_preset)
         self.main_window.signal_save.connect(self.preset_save_button)
         self.main_window.signal_delete.connect(self.preset_delete_button)
@@ -1060,7 +1063,7 @@ class FindReplace:
         self.main_window.names = self.names_new
 
         self.save_window = SavePresetWindow(self.main_window)
-        self.main_window.visible()
+        self.main_window.show()
 
     @staticmethod
     def message(string):
