@@ -797,7 +797,7 @@ class MainWindow(QtWidgets.QWidget):
 
     def init_window(self):
         """Create the pyside objects and layout the window."""
-        self.setMinimumSize(800, 130)
+        self.setMinimumSize(850, 600)
         self.setStyleSheet('background-color: #272727')
         self.setWindowTitle(TITLE_VERSION)
 
@@ -895,17 +895,20 @@ class MainWindow(QtWidgets.QWidget):
         # Focus
         self.line_edit_find.setFocus()
 
-        # Center Window
+        self.center_window()
+
+    def center_window(self):
+        """Center the window on screen.
+
+        Important to note this is centering the window BEFORE it is shown.  frameSize is
+        based on setMinimumSize until the window is shown with show(), THEN it will
+        reflect actual size.  Therefore, its important to have your setMinimumSize be
+        very close to final size.
+        """
         resolution = QtGui.QGuiApplication.primaryScreen().screenGeometry()
-        print(f'screenGeometry is {resolution}')
-        print(f'availableGeometry is {QtWidgets.QApplication.primaryScreen().availableGeometry()}')
         self.move(
                 (resolution.width() / 2) - (self.frameSize().width() / 2),
                 (resolution.height() / 2) - (self.frameSize().height() / 2))
-
-#   def visible(self):
-#       """Make the window visible."""
-#       self.show()
 
     @property
     def preset(self):
@@ -1044,7 +1047,7 @@ class FindReplace:
                 'Match End': '$'}
 
         # Windows
-        self.parent_window = QtWidgets.QApplication.activeWindow()
+        self.parent_window = self.get_flame_main_window()
         self.main_window = MainWindow(self.parent_window)
         self.main_window.signal_preset.connect(self.update_preset)
         self.main_window.signal_save.connect(self.preset_save_button)
@@ -1063,6 +1066,7 @@ class FindReplace:
         self.main_window.names = self.names_new
 
         self.save_window = SavePresetWindow(self.main_window)
+
         self.main_window.show()
 
     @staticmethod
@@ -1079,6 +1083,13 @@ class FindReplace:
         thumbnail until you tap on the UI.
         """
         flame.execute_shortcut('Refresh Thumbnails')
+
+    @staticmethod
+    def get_flame_main_window():
+        """Return the Flame main window widget."""
+        for widget in QtWidgets.QApplication.topLevelWidgets():
+            if widget.objectName() == 'CF Main Window':
+                return widget
 
     def get_settings_file(self):
         """Generate filepath for settings."""
