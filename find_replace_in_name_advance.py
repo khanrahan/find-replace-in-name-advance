@@ -709,6 +709,33 @@ class SettingsStore:
         self.tree.write(self.file)
 
 
+class SelectionStore:
+    """Store the selected Flame python objects."""
+
+    def __init__(self, selection=None):
+        """Initialize the instance."""
+        self.selection = selection
+
+    def filter_selection(self, flame_object):
+        """Remove specifc Flame objects from the selection."""
+        self.selection = tuple(item for item in self.selection
+                               if not isinstance(item, flame_object))
+
+    @property
+    def items(self):
+        """Get or set the items/objects in the store."""
+        return self.selection
+
+    @items.setter
+    def items(self, items):
+        self.selection = items
+
+    @property
+    def names(self):
+        """Get the string names of the objects in the store."""
+        return [item.name.get_value() for item in self.selection]
+
+
 class SavePresetWindow(QtWidgets.QDialog):
     """View to confirm name of preset before saving."""
 
@@ -994,17 +1021,16 @@ class FindReplace:
         PySequence
         PyClip
 
-    Timeline supported objects:
+    Timeline supportedobjects:
         PySegment
     """
 
     def __init__(self, selection, target=None):
         """Create FindReplace object with necessary starting values."""
-        self.selection = selection
+        self.selection = SelectionStore(selection)
         self.target = target
 
-        if self.target == 'Timeline':
-            self.filter_selection()
+        self.filter_timeline_selection()
 
         self.message(TITLE_VERSION)
         self.message(f'Script called from {__file__}')
@@ -1036,8 +1062,6 @@ class FindReplace:
         self.replace_resolve_tokens()
 
         # Selection Names
-        self.names = None
-        self.get_names()
         self.names_new = None
         self.get_names_new()
 
@@ -1096,15 +1120,15 @@ class FindReplace:
         user_folder = os.path.expanduser(PRESET_FOLDER)
         self.settings_file = os.path.join(user_folder, XML)
 
-    def filter_selection(self):
+    def filter_timeline_selection(self):
         """Remove PyTransition objects from the selection.
 
         This is necessary because its convenient for the user to just do a shift + left
         click range selection of segments on the timeline, but this will also include
         the transitions between each segment which we do not want to rename.
         """
-        self.selection = tuple(item for item in self.selection
-                               if not isinstance(item, flame.PyTransition))
+        if self.target == 'Timeline':
+            self.selection.filter_selection(flame.PyTransition)
 
     def load_find(self):
         """Load the first preset's find pattern or leave blank."""
@@ -1211,7 +1235,7 @@ class FindReplace:
 
     def generate_tokens_media_panel(self):
         """Populate the token list."""
-        for item in self.selection:
+        for item in self.selection.items:
             obj_tokens = {}
             obj_tokens['Colour Space'] = [
                     '<colour space>', self.get_token_colour_space(item)]
@@ -1219,7 +1243,7 @@ class FindReplace:
 
     def generate_tokens_timeline(self):
         """Populate the token list."""
-        for item in self.selection:
+        for item in self.selection.items:
             obj_tokens = {}
             obj_tokens['Shot Name'] = ['<shot name>', self.get_token_shot_name(item)]
             self.tokens_unique.append(obj_tokens)
@@ -1248,7 +1272,7 @@ class FindReplace:
         """Replace tokens with values."""
         results = []
 
-        for index, item in enumerate(self.selection):
+        for index, item in enumerate(self.selection.items):
             del item
             result = self.replace
             tokens_combined = {**self.tokens_generic, **self.tokens_unique[index]}
@@ -1262,14 +1286,10 @@ class FindReplace:
 
         self.replace_resolved = results
 
-    def get_names(self):
-        """Store the original names of the selection in a list."""
-        self.names = [item.name.get_value() for item in self.selection]
-
     def get_names_new(self):
         """Generate the new names."""
         self.names_new = [re.sub(self.find_regex, self.replace_resolved[index], item)
-                          for index, item in enumerate(self.names)]
+                          for index, item in enumerate(self.selection.names)]
 
     def update_find(self, string):
         """Everything to update when find is changed."""
@@ -1284,7 +1304,7 @@ class FindReplace:
 
         # or return to starting state
         if not self.find:
-            self.main_window.names = self.names
+            self.main_window.names = self.selection.names
 
     def update_replace(self, string):
         """Everything to update when replace is changed."""
@@ -1307,13 +1327,15 @@ class FindReplace:
             self.names = names of the select objects
             self.names_new = new names of the above objects after search and replace
         """
-        for num, clip in enumerate(self.selection):
-            if self.names[num] == self.names_new[num]:
-                self.message(f'Skipping {self.names[num]}. No change to name.')
+        for num, clip in enumerate(self.selection.items):
+            if self.selection.names[num] == self.names_new[num]:
+                self.message(
+                    f'Skipping {self.selection.names[num]}. No change to name.')
                 continue
 
             clip.name.set_value(self.names_new[num])
-            self.message(f'Renamed {self.names[num]} to {self.names_new[num]}')
+            self.message(
+                f'Renamed {self.selection.names[num]} to {self.names_new[num]}')
 
     def update_preset(self):
         """Update fields when preset is changed."""
