@@ -572,6 +572,99 @@ class FlameTokenPushButton(QtWidgets.QPushButton):
             self.token_menu.addAction(name, partial(insert_token, name))
 
 
+class TokenStore:
+    """Store all of the available tokens for the passed in Flame object."""
+
+    def __init__(self, flame_object, epoch=None):
+        """Initialize the instance.
+
+        Args:
+            flame_object: Flame API object
+            epoch: A date time object.  Useful to have all tokens referencing the exact
+                same moment, instead of being very verry verrry slightly offset.
+        """
+        self.flame_object = flame_object
+        self.now = epoch
+        self.tokens = {}
+        self.get_tokens()
+
+    def get_tokens(self):
+        """Get all available tokens: generic and object specific."""
+        self.get_tokens_generic()
+
+        media_panel_objects = (
+            flame.PyClip,
+            flame.PySequence,
+            flame.PyDesktop,
+            flame.PyFolder,
+            flame.PyLibrary,
+            flame.PyReel,
+            flame.PyReelGroup,
+            flame.PyWorkspace,
+            flame.PySegment,
+        )
+
+        timeline_objects = (
+            flame.PySegment,
+        )
+
+        if isinstance(self.flame_object, media_panel_objects):
+            self.get_tokens_media_panel()
+        if isinstance(self.flame_object, timeline_objects):
+            self.get_tokens_timeline()
+
+    def get_tokens_generic(self):
+        """Populate the token list."""
+        self.tokens['am/pm'] = ['<pp>', self.now.strftime('%p').lower()]
+        self.tokens['AM/PM'] = ['<PP>', self.now.strftime('%p').upper()]
+        self.tokens['Day'] = ['<DD>', self.now.strftime('%d')]
+        self.tokens['Hour (12hr)'] = ['<hh>', self.now.strftime('%I')]
+        self.tokens['Hour (24hr)'] = ['<HH>', self.now.strftime('%H')]
+        self.tokens['Minute'] = ['<mm>', self.now.strftime('%M')]
+        self.tokens['Month'] = ['<MM>', self.now.strftime('%m')]
+        self.tokens['Project'] = ['<project>', flame.project.current_project.name]
+        self.tokens['User'] = ['<user>', flame.users.current_user.name]
+        self.tokens['Year (YYYY)'] = ['<YYYY>', self.now.strftime('%Y')]
+        self.tokens['Year (YY)'] = ['<YY>', self.now.strftime('%y')]
+
+    def get_tokens_media_panel(self):
+        """Populate the token list."""
+        self.tokens['Colour Space'] = ['<colour space>', self.get_token_colour_space()]
+
+    def get_tokens_timeline(self):
+        """Populate the token list."""
+        self.tokens['Shot Name'] = ['<shot name>', self.get_token_shot_name()]
+
+    def get_token_colour_space(self):
+        """Get the item's color space.
+
+        Returns:
+            str or None
+        """
+        try:
+            token = self.flame_object.get_colour_space()
+        except TypeError:
+            token = None
+        return token
+
+    def get_token_shot_name(self):
+        """Get the item's shot name.
+
+        Returns:
+            str or None
+        """
+        try:
+            token = self.flame_object.shot_name.get_value()
+        except TypeError:
+            token = None
+        return token
+
+    @property
+    def data(self):
+        """Get the raw dictionary of nested listed."""
+        return self.tokens
+
+
 class SettingsStore:
     """Store settings as XML.
 
@@ -714,7 +807,7 @@ class Selection:
 
     def __init__(self, flame_object, epoch=None):
         """Init the instance of the stored selection."""
-        self.selection = (flame_object)
+        self.selection = (flame_object, TokenStore(flame_object, epoch=epoch))
 
     @property
     def name(self):
@@ -725,6 +818,11 @@ class Selection:
     def object(self):
         """Get the stored object."""
         return self.selection[0]
+
+    @property
+    def tokens(self):
+        """Get the raw dictionary of nested list within the TokenStore."""
+        return self.selection[1].data
 
 
 class SelectionStore:
@@ -738,6 +836,22 @@ class SelectionStore:
         """Remove specifc Flame objects from the selection."""
         self.selection = tuple(item for item in self.selection
                                if not isinstance(item, flame_object))
+
+    def get_available_tokens(self):
+        """Assemble token names & <tokens>.
+
+        FlameTokenPushButton wants a dict that is only {name: <token>} so need to
+        simplify it with a dict comprehension.
+        """
+        available_tokens = {}
+
+        for item in self.selection:
+            for (name, [token, value]) in item.tokens.items():
+                del value
+                if name not in available_tokens:
+                    available_tokens[name] = token
+
+        return available_tokens
 
     @property
     def items(self):
@@ -1050,6 +1164,9 @@ class FindReplace:
 
     def __init__(self, selection, target=None):
         """Create FindReplace object with necessary starting values."""
+        self.message(TITLE_VERSION)
+        self.message(f'Script called from {__file__}')
+
         self.now = dt.datetime.now()
         self.selection = SelectionStore()
         self.store_selection(selection)
@@ -1058,20 +1175,10 @@ class FindReplace:
 
         self.filter_timeline_selection()
 
-        self.message(TITLE_VERSION)
-        self.message(f'Script called from {__file__}')
-
         # Load settings (includes the presets)
         self.settings_file = None
         self.get_settings_file()
         self.settings = SettingsStore(self.settings_file)
-
-        # Tokens
-        self.tokens_generic = {}
-        self.generate_tokens_generic()
-
-        self.tokens_unique = []
-        self.generate_tokens_unique()
 
         # Find
         self.find = None
@@ -1110,7 +1217,7 @@ class FindReplace:
         self.main_window.find = self.find
         self.main_window.wildcards = self.wildcards
         self.main_window.replace = self.replace
-        self.main_window.tokens = self.get_all_tokens()
+        self.main_window.tokens = self.selection.get_available_tokens()
         self.main_window.names = self.names_new
 
         self.save_window = SavePresetWindow(self.main_window)
@@ -1198,99 +1305,17 @@ class FindReplace:
         else:
             self.replace = ''
 
-    def generate_tokens_generic(self):
-        """Populate the token list."""
-        self.tokens_generic['am/pm'] = [
-                '<pp>', self.now.strftime('%p').lower()]
-        self.tokens_generic['AM/PM'] = [
-                '<PP>', self.now.strftime('%p').upper()]
-        self.tokens_generic['Day'] = [
-                '<DD>', self.now.strftime('%d')]
-        self.tokens_generic['Hour (12hr)'] = [
-                '<hh>', self.now.strftime('%I')]
-        self.tokens_generic['Hour (24hr)'] = [
-                '<HH>', self.now.strftime('%H')]
-        self.tokens_generic['Minute'] = [
-                '<mm>', self.now.strftime('%M')]
-        self.tokens_generic['Month'] = [
-                '<MM>', self.now.strftime('%m')]
-        self.tokens_generic['Project'] = [
-                '<project>', flame.project.current_project.name]
-        self.tokens_generic['User'] = [
-                '<user>', flame.users.current_user.name]
-        self.tokens_generic['Year (YYYY)'] = [
-                '<YYYY>', self.now.strftime('%Y')]
-        self.tokens_generic['Year (YY)'] = [
-                '<YY>', self.now.strftime('%y')]
+#   def get_all_tokens(self):
+#       """Assemble token names & <tokens>.
 
-    def get_token_colour_space(self, item):
-        """Get the item's color space.
-
-        Args:
-            item: Flame python object such PyClip, etc
-
-        Returns:
-            str or None
-        """
-        try:
-            token = item.get_colour_space()
-        except TypeError:
-            token = None
-        return token
-
-    def get_token_shot_name(self, item):
-        """Get the item's shot name.
-
-        Args:
-            item: Flame python object such PyClip, etc
-
-        Returns:
-            str or None
-        """
-        try:
-            token = item.shot_name.get_value()
-        except TypeError:
-            token = None
-        return token
-
-    def generate_tokens_unique(self):
-        """Determine which unique tokens to generate and generate them!
-
-        For example, Media Panel objects would have a different set of tokens available
-        compared to Timeline objects.
-        """
-        if self.target == 'Media Panel':
-            self.generate_tokens_media_panel()
-        if self.target == 'Timeline':
-            self.generate_tokens_timeline()
-
-    def generate_tokens_media_panel(self):
-        """Populate the token list."""
-        for item in self.selection.objects:
-            obj_tokens = {}
-            obj_tokens['Colour Space'] = [
-                    '<colour space>', self.get_token_colour_space(item)]
-            self.tokens_unique.append(obj_tokens)
-
-    def generate_tokens_timeline(self):
-        """Populate the token list."""
-        for item in self.selection.objects:
-            obj_tokens = {}
-            obj_tokens['Shot Name'] = ['<shot name>', self.get_token_shot_name(item)]
-            self.tokens_unique.append(obj_tokens)
-
-    def get_all_tokens(self):
-        """Assemble token names & <tokens>.
-
-        FlameTokenPushButton wants a dict that is only {name: <token>} so need to
-        simplify it with a dict comprehension.
-        """
-        tokens_generic = {
-                key: values[0] for key, values in self.tokens_generic.items()}
-        tokens_unique = {
-                key: values[0] for key, values in self.tokens_unique[0].items()}
-        return {**tokens_generic, **tokens_unique}
-
+#       FlameTokenPushButton wants a dict that is only {name: <token>} so need to
+#       simplify it with a dict comprehension.
+#       """
+#       tokens_generic = {
+#               key: values[0] for key, values in self.tokens_generic.items()}
+#       tokens_unique = {
+#               key: values[0] for key, values in self.tokens_unique[0].items()}
+#       return {**tokens_generic, **tokens_unique}
     def replace_sanitize(self):
         """Replace invalid characters with an underscore.
 
@@ -1303,12 +1328,24 @@ class FindReplace:
         """Replace tokens with values."""
         results = []
 
-        for index, item in enumerate(self.selection.objects):
-            del item
-            result = self.replace
-            tokens_combined = {**self.tokens_generic, **self.tokens_unique[index]}
+#       for index, item in enumerate(self.selection.objects):
+#           del item
+#           result = self.replace
+#           tokens_combined = {**self.tokens_generic, **self.tokens_unique[index]}
 
-            for name, [token, value] in tokens_combined.items():
+#           for name, [token, value] in tokens_combined.items():
+#               del name
+#               if value is None:
+#                   value = ''
+#               result = re.sub(token, value, result)
+#           results.append(result)
+
+#       self.replace_resolved = results
+
+        for item in self.selection.items:
+            result = self.replace
+
+            for name, [token, value] in item.tokens.items():
                 del name
                 if value is None:
                     value = ''
