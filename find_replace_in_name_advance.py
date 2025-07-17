@@ -709,6 +709,24 @@ class SettingsStore:
         self.tree.write(self.file)
 
 
+class Selection:
+    """Store a single Flame API object."""
+
+    def __init__(self, flame_object, epoch=None):
+        """Init the instance of the stored selection."""
+        self.selection = (flame_object)
+
+    @property
+    def name(self):
+        """Get the name of the stored object."""
+        return self.selection[0].name.get_value()
+
+    @property
+    def object(self):
+        """Get the stored object."""
+        return self.selection[0]
+
+
 class SelectionStore:
     """Store the selected Flame python objects."""
 
@@ -733,7 +751,12 @@ class SelectionStore:
     @property
     def names(self):
         """Get the string names of the objects in the store."""
-        return [item.name.get_value() for item in self.selection]
+        return [item.name for item in self.selection]
+
+    @property
+    def objects(self):
+        """Get the stored objects."""
+        return (item.object for item in self.selection)
 
 
 class SavePresetWindow(QtWidgets.QDialog):
@@ -1027,7 +1050,10 @@ class FindReplace:
 
     def __init__(self, selection, target=None):
         """Create FindReplace object with necessary starting values."""
-        self.selection = SelectionStore(selection)
+        self.now = dt.datetime.now()
+        self.selection = SelectionStore()
+        self.store_selection(selection)
+
         self.target = target
 
         self.filter_timeline_selection()
@@ -1041,8 +1067,6 @@ class FindReplace:
         self.settings = SettingsStore(self.settings_file)
 
         # Tokens
-        self.now = dt.datetime.now()
-
         self.tokens_generic = {}
         self.generate_tokens_generic()
 
@@ -1114,6 +1138,13 @@ class FindReplace:
         for widget in QtWidgets.QApplication.topLevelWidgets():
             if widget.objectName() == 'CF Main Window':
                 return widget
+
+    def store_selection(self, selection):
+        """Store the selection."""
+        items = []
+        for item in selection:
+            items.append(Selection(item, epoch=self.now))
+        self.selection.items = tuple(items)
 
     def get_settings_file(self):
         """Generate filepath for settings."""
@@ -1235,7 +1266,7 @@ class FindReplace:
 
     def generate_tokens_media_panel(self):
         """Populate the token list."""
-        for item in self.selection.items:
+        for item in self.selection.objects:
             obj_tokens = {}
             obj_tokens['Colour Space'] = [
                     '<colour space>', self.get_token_colour_space(item)]
@@ -1243,7 +1274,7 @@ class FindReplace:
 
     def generate_tokens_timeline(self):
         """Populate the token list."""
-        for item in self.selection.items:
+        for item in self.selection.objects:
             obj_tokens = {}
             obj_tokens['Shot Name'] = ['<shot name>', self.get_token_shot_name(item)]
             self.tokens_unique.append(obj_tokens)
@@ -1272,7 +1303,7 @@ class FindReplace:
         """Replace tokens with values."""
         results = []
 
-        for index, item in enumerate(self.selection.items):
+        for index, item in enumerate(self.selection.objects):
             del item
             result = self.replace
             tokens_combined = {**self.tokens_generic, **self.tokens_unique[index]}
@@ -1327,7 +1358,8 @@ class FindReplace:
             self.names = names of the select objects
             self.names_new = new names of the above objects after search and replace
         """
-        for num, clip in enumerate(self.selection.items):
+        for num, clip in enumerate(self.selection.objects):
+            name_original = self.selection.names[num]
             if self.selection.names[num] == self.names_new[num]:
                 self.message(
                     f'Skipping {self.selection.names[num]}. No change to name.')
@@ -1335,7 +1367,7 @@ class FindReplace:
 
             clip.name.set_value(self.names_new[num])
             self.message(
-                f'Renamed {self.selection.names[num]} to {self.names_new[num]}')
+                f'Renamed {name_original} to {self.names_new[num]}')
 
     def update_preset(self):
         """Update fields when preset is changed."""
