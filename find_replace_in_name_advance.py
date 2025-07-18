@@ -1306,17 +1306,6 @@ class FindReplace:
         else:
             self.replace = ''
 
-#   def get_all_tokens(self):
-#       """Assemble token names & <tokens>.
-
-#       FlameTokenPushButton wants a dict that is only {name: <token>} so need to
-#       simplify it with a dict comprehension.
-#       """
-#       tokens_generic = {
-#               key: values[0] for key, values in self.tokens_generic.items()}
-#       tokens_unique = {
-#               key: values[0] for key, values in self.tokens_unique[0].items()}
-#       return {**tokens_generic, **tokens_unique}
     def replace_sanitize(self):
         """Replace invalid characters with an underscore.
 
@@ -1328,20 +1317,6 @@ class FindReplace:
     def replace_resolve_tokens(self):
         """Replace tokens with values."""
         results = []
-
-#       for index, item in enumerate(self.selection.objects):
-#           del item
-#           result = self.replace
-#           tokens_combined = {**self.tokens_generic, **self.tokens_unique[index]}
-
-#           for name, [token, value] in tokens_combined.items():
-#               del name
-#               if value is None:
-#                   value = ''
-#               result = re.sub(token, value, result)
-#           results.append(result)
-
-#       self.replace_resolved = results
 
         for item in self.selection.items:
             result = self.replace
