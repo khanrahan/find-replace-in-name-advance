@@ -1086,7 +1086,7 @@ class MainWindow(QtWidgets.QWidget):
     @property
     def presets(self):
         """Get or set a list of the available preset names."""
-        self.btn_preset = []
+        return [action.text() for action in self.btn_preset.actions()]
 
     @presets.setter
     def presets(self, presets):
