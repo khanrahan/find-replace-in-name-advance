@@ -1245,6 +1245,7 @@ class FindReplace:
         for widget in QtWidgets.QApplication.topLevelWidgets():
             if widget.objectName() == 'CF Main Window':
                 return widget
+        return None
 
     def store_selection(self, selection):
         """Store the selection."""
