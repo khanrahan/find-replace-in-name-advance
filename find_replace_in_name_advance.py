@@ -2,13 +2,13 @@
 Script Name: Find & Replace in Name Advance
 Written by: Kieran Hanrahan
 
-Script Version: 3.3.1
+Script Version: 3.3.2
 Flame Version: 2025
 
 URL: http://github.com/khanrahan/find-replace-in-name-advance
 
 Creation Date: 02.21.24
-Update Date: 07.17.25
+Update Date: 08.01.25
 
 Description:
 
