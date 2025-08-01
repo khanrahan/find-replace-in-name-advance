@@ -2,7 +2,7 @@
 Script Name: Find & Replace in Name Advance
 Written by: Kieran Hanrahan
 
-Script Version: 3.3.2
+Script Version: 3.3.3
 Flame Version: 2025
 
 URL: http://github.com/khanrahan/find-replace-in-name-advance
@@ -49,7 +49,7 @@ import flame
 from PySide6 import QtCore, QtGui, QtWidgets
 
 TITLE = 'Find and Replace in Name Advance'
-VERSION_INFO = (3, 3, 1)
+VERSION_INFO = (3, 3, 3)
 VERSION = '.'.join([str(num) for num in VERSION_INFO])
 TITLE_VERSION = f'{TITLE} v{VERSION}'
 
@@ -1213,7 +1213,7 @@ class FindReplace:
         self.main_window.signal_cancel.connect(self.cancel_button)
 
         self.main_window.preset = (self.settings.get_preset_names()[0] if
-                                   self.settings.get_preset_name() else None)
+                                   self.settings.get_preset_names() else None)
         self.main_window.presets = self.settings.get_preset_names()
         self.main_window.find = self.find
         self.main_window.wildcards = self.wildcards
