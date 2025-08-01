@@ -1213,7 +1213,7 @@ class FindReplace:
         self.main_window.signal_cancel.connect(self.cancel_button)
 
         self.main_window.preset = (self.settings.get_preset_names()[0] if
-                                   self.settings.get_preset_name() else None)
+                                   self.settings.get_preset_names() else None)
         self.main_window.presets = self.settings.get_preset_names()
         self.main_window.find = self.find
         self.main_window.wildcards = self.wildcards
