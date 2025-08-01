@@ -2,13 +2,13 @@
 Script Name: Find & Replace in Name Advance
 Written by: Kieran Hanrahan
 
-Script Version: 3.3.1
+Script Version: 3.3.2
 Flame Version: 2025
 
 URL: http://github.com/khanrahan/find-replace-in-name-advance
 
 Creation Date: 02.21.24
-Update Date: 07.17.25
+Update Date: 08.01.25
 
 Description:
 
@@ -1212,7 +1212,8 @@ class FindReplace:
         self.main_window.signal_ok.connect(self.ok_button)
         self.main_window.signal_cancel.connect(self.cancel_button)
 
-        self.main_window.preset = self.settings.get_preset_names()[0]
+        self.main_window.preset = (self.settings.get_preset_names()[0] if
+                                   self.settings.get_preset_name() else None)
         self.main_window.presets = self.settings.get_preset_names()
         self.main_window.find = self.find
         self.main_window.wildcards = self.wildcards
